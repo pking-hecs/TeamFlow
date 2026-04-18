@@ -15,12 +15,10 @@ import { selectTeams } from './store/teamsSlice.js';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: '◫' },
-  { to: '/teams', label: 'Teams', icon: '◌' },
-  { to: '/projects', label: 'Projects', icon: '▣' },
-  { to: '/tasks', label: 'Tasks', icon: '☑' },
-  { to: '/kanban', label: 'Kanban', icon: '⋮' },
-  { to: '/profile', label: 'Profile', icon: '◍' },
-  { to: '/account', label: 'Settings', icon: '⚙' },
+  { to: '/teams',     label: 'Teams',     icon: '◌' },
+  { to: '/projects',  label: 'Projects',  icon: '▣' },
+  { to: '/tasks',     label: 'Tasks',     icon: '☑' },
+  { to: '/kanban',    label: 'Kanban',    icon: '⋮' },
 ];
 
 function ThemeToggle({ theme, onToggle }) {
@@ -68,17 +66,13 @@ function Topbar({ stats }) {
   return (
     <section className="topbar">
       <div>
-        <h1>Hi, Amanda!</h1>
-        <p>Let&apos;s look at your teams, projects, and delivery activity today.</p>
+        <h1>Workspace Overview</h1>
+        <p>Teams, projects, and delivery activity at a glance.</p>
       </div>
       <div className="topbar-actions">
         <div className="search-shell">
           <span>⌕</span>
           <input type="search" placeholder="Search teams, tasks, or projects" />
-        </div>
-        <div className="topbar-badge">
-          <strong>{stats.pendingTasks}</strong>
-          <span>open tasks</span>
         </div>
       </div>
     </section>
@@ -120,7 +114,7 @@ function ProfilePage({ profile }) {
           <div className="section-heading">
             <div>
               <span className="eyebrow">Preferences</span>
-              <h3>Workspace habits</h3>
+              <h3>Work preferences</h3>
             </div>
           </div>
           <div className="pill-grid">

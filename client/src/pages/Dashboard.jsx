@@ -1,81 +1,118 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { formatShortDate } from '../data/mockWorkspace.js';
 
-function StatBubble({ label, value, tone }) {
+/* ── Stat card ─────────────────────────────────── */
+function StatCard({ label, value, icon, accent }) {
   return (
-    <div className={`metric-bubble tone-${tone}`}>
-      <strong>{value}</strong>
-      <span>{label}</span>
+    <div className="stat-card">
+      <span className="stat-icon" style={accent ? { color: accent } : {}}>{icon}</span>
+      <strong className="stat-value">{value}</strong>
+      <span className="stat-label">{label}</span>
     </div>
   );
 }
 
+/* ── Animated ring ──────────────────────────────── */
+function TaskRing({ completed, total }) {
+  const arcRef = useRef(null);
+  const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+  const R   = 68;
+  const SW  = 9;
+  const r   = R - SW / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+
+  useEffect(() => {
+    const el = arcRef.current;
+    if (!el) return;
+    el.style.transition = 'none';
+    el.style.strokeDashoffset = circ;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+        el.style.strokeDashoffset = offset;
+      });
+    });
+  }, [offset, circ]);
+
+  return (
+    <div className="ring-wrap">
+      <svg
+        className="ring-svg"
+        width={R * 2}
+        height={R * 2}
+        viewBox={`0 0 ${R * 2} ${R * 2}`}
+      >
+        <defs>
+          <linearGradient id="rg" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#e11d48" />
+            <stop offset="100%" stopColor="#ff5a30" />
+          </linearGradient>
+          <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+
+        {/* Track */}
+        <circle cx={R} cy={R} r={r} fill="none"
+          stroke="var(--line)" strokeWidth={SW} />
+
+        {/* Arc */}
+        <circle
+          ref={arcRef}
+          cx={R} cy={R} r={r}
+          fill="none"
+          stroke="url(#rg)"
+          strokeWidth={SW}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={circ}
+          transform={`rotate(-90 ${R} ${R})`}
+          filter="url(#glow)"
+        />
+      </svg>
+
+      <div className="ring-centre">
+        <strong className="ring-pct">{pct}%</strong>
+        <span className="ring-sub">done</span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Dashboard ──────────────────────────────────── */
 export default function Dashboard({ teams, workspace, stats }) {
-  const topProjects = workspace.projects.slice(0, 3);
-  const trainingDays = [1, 5, 9, 14, 18, 23, 29];
+  const topProjects    = workspace.projects.slice(0, 4);
+  const completedTasks = workspace.tasks.filter((t) => t.status === 'Done').length;
+  const totalTasks     = workspace.tasks.length;
 
   return (
     <section className="page-stack">
-      <div className="dashboard-grid">
-        <article className="feature-panel warm-panel">
-          <div className="section-heading compact">
-            <div>
-              <span className="eyebrow">Dashboard</span>
-              <h2>Your team workspace results for today</h2>
-            </div>
-            <div className="tiny-badge">Live</div>
-          </div>
 
-          <div className="bubble-board">
-            <StatBubble label="Teams" value={stats.teamCount} tone="gold" />
-            <StatBubble label="Members" value={stats.memberCount} tone="coral" />
-            <StatBubble label="Projects" value={stats.inProgressProjects} tone="ink" />
-          </div>
-
-          <div className="legend-row">
-            <span><i className="tone-gold" /> Team cards</span>
-            <span><i className="tone-coral" /> Active members</span>
-            <span><i className="tone-ink" /> Delivery focus</span>
-          </div>
-        </article>
-
-        <article className="feature-panel dark-panel">
-          <div className="section-heading compact">
-            <div>
-              <span className="eyebrow">Schedule</span>
-              <h2>Training days</h2>
-            </div>
-            <span className="tiny-badge">June</span>
-          </div>
-
-          <div className="calendar-grid">
-            {Array.from({ length: 30 }, (_, index) => {
-              const day = index + 1;
-              const active = trainingDays.includes(day);
-              return (
-                <span key={day} className={`calendar-day${active ? ' active' : ''}`}>{day}</span>
-              );
-            })}
-          </div>
-
-          <div className="calendar-legend">
-            <span><i className="legend-dot current" /> Current</span>
-            <span><i className="legend-dot done" /> Done</span>
-            <span><i className="legend-dot scheduled" /> Scheduled</span>
-          </div>
-        </article>
+      {/* ── Row 1: KPI stat cards ── */}
+      <div className="stats-row">
+        <StatCard label="Active Teams"        value={stats.teamCount}          icon="◌" />
+        <StatCard label="Total Members"       value={stats.memberCount}        icon="◍" />
+        <StatCard label="Projects in Flight"  value={stats.inProgressProjects} icon="▣" />
+        <StatCard label="Open Tasks"          value={stats.pendingTasks}       icon="☑" />
       </div>
 
-      <div className="content-grid main-layout">
-        <div className="stack">
+      {/* ── Row 2: Tasks ring  +  Teams + Deadlines ── */}
+      <div className="dash-top-grid">
+
+        {/* Left: Teams + Upcoming Deadlines stacked */}
+        <div className="dash-left">
+
+          {/* Teams */}
           <article className="glass-card">
             <div className="section-heading">
               <div>
                 <span className="eyebrow">Teams</span>
-                <h3>Dashboard team cards</h3>
+                <h3>Your teams</h3>
               </div>
-              <Link to="/teams" className="text-action">View all</Link>
+              <Link to="/teams" className="text-action">View all →</Link>
             </div>
             <div className="team-card-grid">
               {teams.map((team) => (
@@ -90,70 +127,85 @@ export default function Dashboard({ teams, workspace, stats }) {
             </div>
           </article>
 
-          <div className="content-grid split-cards">
-            <article className="glass-card">
-              <div className="section-heading compact">
-                <div>
-                  <span className="eyebrow">Progress</span>
-                  <h3>Steps for today</h3>
-                </div>
-                <strong>8,500</strong>
+          {/* Upcoming deadlines */}
+          <article className="glass-card">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">Projects</span>
+                <h3>Upcoming deadlines</h3>
               </div>
-              <p className="subtle-copy">Keep your delivery streak moving by closing one project action and one task review.</p>
-              <div className="progress-ring">
-                <div className="ring-center">
-                  <strong>68%</strong>
-                  <span>Completed</span>
-                </div>
-              </div>
-            </article>
-
-            <article className="glass-card">
-              <div className="section-heading compact">
-                <div>
-                  <span className="eyebrow">Plan</span>
-                  <h3>Weight loss plan</h3>
-                </div>
-                <strong>68%</strong>
-              </div>
-              <div className="range-strip">
-                <span>56 kg</span>
-                <div><i /></div>
-                <span>50 kg</span>
-              </div>
-            </article>
-          </div>
+              <Link to="/projects" className="text-action">Manage →</Link>
+            </div>
+            <div className="project-deadline-list">
+              {topProjects.map((project) => (
+                <Link key={project.id} to={`/projects/${project.id}`} className="deadline-row">
+                  <div className="deadline-icon">{project.name.slice(0, 1)}</div>
+                  <div className="deadline-copy">
+                    <strong>{project.name}</strong>
+                    <span>Due {formatShortDate(project.deadline)}</span>
+                  </div>
+                  <div className="deadline-progress">
+                    <span>{project.progress}%</span>
+                    <div className="progress-bar-track">
+                      <div className="progress-bar-fill" style={{ width: `${project.progress}%` }} />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </article>
         </div>
 
-        <article className="glass-card">
+        {/* Right: Task completion ring */}
+        <article className="glass-card task-ring-card">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Projects</span>
-              <h3>Projects with deadlines</h3>
+              <span className="eyebrow">Tasks</span>
+              <h3>Completion rate</h3>
             </div>
-            <Link to="/projects" className="text-action">Manage</Link>
+            <Link to="/tasks" className="text-action">View all →</Link>
           </div>
-          <div className="habit-list">
-            {topProjects.map((project) => (
-              <Link key={project.id} to={`/projects/${project.id}`} className="habit-row">
-                <div className="habit-icon">{project.name.slice(0, 1)}</div>
-                <div className="habit-copy">
-                  <strong>{project.name}</strong>
-                  <span>Deadline {formatShortDate(project.deadline)}</span>
-                </div>
-                <div className="habit-meta">
-                  <span>{project.progress}%</span>
-                  <div className="mini-bars">
-                    {Array.from({ length: 8 }, (_, index) => (
-                      <i key={index} className={index < Math.round(project.progress / 13) ? 'filled' : ''} />
-                    ))}
+
+          <TaskRing completed={completedTasks} total={totalTasks} />
+
+          <div className="ring-legend">
+            <div className="ring-legend-item">
+              <span className="ring-dot ring-dot--done" />
+              <div>
+                <strong>{completedTasks}</strong>
+                <span>Completed</span>
+              </div>
+            </div>
+            <div className="ring-legend-sep" />
+            <div className="ring-legend-item">
+              <span className="ring-dot ring-dot--left" />
+              <div>
+                <strong>{totalTasks - completedTasks}</strong>
+                <span>Remaining</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Mini breakdown by status */}
+          <div className="ring-breakdown">
+            {['To Do', 'In Progress', 'Done'].map((status) => {
+              const count = workspace.tasks.filter((t) => t.status === status).length;
+              const statusPct = totalTasks ? Math.round((count / totalTasks) * 100) : 0;
+              return (
+                <div key={status} className="ring-breakdown-row">
+                  <span className={`breakdown-dot breakdown-dot--${status.toLowerCase().replace(' ', '-')}`} />
+                  <span className="breakdown-label">{status}</span>
+                  <div className="breakdown-track">
+                    <div className="breakdown-fill" style={{ width: `${statusPct}%` }} />
                   </div>
+                  <span className="breakdown-count">{count}</span>
                 </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         </article>
       </div>
+
     </section>
   );
 }
