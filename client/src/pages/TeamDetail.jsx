@@ -40,7 +40,7 @@ function TeamMembersPanel({ team }) {
             <div key={member.id} className="member-row">
               <div className="member-id">
                 <div className="team-avatar tiny">{member.name.slice(0, 2).toUpperCase()}</div>
-                <div>
+                <div className="member-copy">
                   <strong>{member.name}</strong>
                   <span>{member.email}</span>
                 </div>
@@ -147,8 +147,8 @@ export default function TeamDetail({ teams, workspace, mode = 'detail' }) {
           <p>{team.description || 'A dedicated team workspace for projects, tasks, and collaboration.'}</p>
         </div>
         <div className="hero-metrics">
-          <div><strong>{team.member_count || 0}</strong><span>Members</span></div>
-          <div><strong>{projects.length}</strong><span>Projects</span></div>
+          <div><strong>{`${team.member_count || 0} Members`}</strong><span>Team size</span></div>
+          <div><strong>{`${projects.length} Projects`}</strong><span>Active work</span></div>
         </div>
       </div>
 

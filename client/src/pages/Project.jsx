@@ -131,14 +131,14 @@ function ProjectDetailPage({ workspace }) {
             <h3>Associated tasks</h3>
           </div>
         </div>
-        <div className="project-list">
+        <div className="project-list associated-task-list">
           {tasks.map((task) => (
-            <Link key={task.id} to={`/tasks/${task.id}`} className="task-row">
-              <div>
+            <Link key={task.id} to={`/tasks/${task.id}`} className="task-row associated-task-row">
+              <div className="associated-task-copy">
                 <strong>{task.title}</strong>
                 <span>{task.status} · {task.priority}</span>
               </div>
-              <span>{task.assignee}</span>
+              <span className="associated-task-assignee">{task.assignee}</span>
             </Link>
           ))}
         </div>
@@ -164,18 +164,33 @@ function TasksListPage({ workspace }) {
 
       <article className="glass-card">
         <div className="filter-row">
-          <select value={filters.status} onChange={(e) => setFilters((state) => ({ ...state, status: e.target.value }))}>
-            {['All', 'To Do', 'In Progress', 'Done'].map((item) => <option key={item}>{item}</option>)}
-          </select>
-          <select value={filters.assignee} onChange={(e) => setFilters((state) => ({ ...state, assignee: e.target.value }))}>
-            {assignees.map((item) => <option key={item}>{item}</option>)}
-          </select>
-          <select value={filters.priority} onChange={(e) => setFilters((state) => ({ ...state, priority: e.target.value }))}>
-            {['All', 'High', 'Medium', 'Low'].map((item) => <option key={item}>{item}</option>)}
-          </select>
+          <label>
+            Status
+            <select value={filters.status} onChange={(e) => setFilters((state) => ({ ...state, status: e.target.value }))}>
+              {['All', 'To Do', 'In Progress', 'Done'].map((item) => (
+                <option key={item} value={item}>{item === 'All' ? 'All statuses' : item}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Assignee
+            <select value={filters.assignee} onChange={(e) => setFilters((state) => ({ ...state, assignee: e.target.value }))}>
+              {assignees.map((item) => (
+                <option key={item} value={item}>{item === 'All' ? 'All assignees' : item}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Priority
+            <select value={filters.priority} onChange={(e) => setFilters((state) => ({ ...state, priority: e.target.value }))}>
+              {['All', 'High', 'Medium', 'Low'].map((item) => (
+                <option key={item} value={item}>{item === 'All' ? 'All priorities' : item}</option>
+              ))}
+            </select>
+          </label>
         </div>
 
-        <div className="project-list">
+        <div className="project-list task-grid">
           {tasks.map((task) => (
             <Link key={task.id} to={`/tasks/${task.id}`} className="task-row">
               <div>
@@ -252,16 +267,21 @@ function TaskDetailPage({ workspace }) {
               <h3>Team discussion</h3>
             </div>
           </div>
-          <div className="comment-list">
-            {task.comments.map((comment) => (
-              <div key={comment.id} className="comment-card">
-                <strong>{comment.author}</strong>
-                <p>{comment.text}</p>
-                <span>{comment.time}</span>
-              </div>
-            ))}
+          <div className="comment-section">
+            <div className="comment-list">
+              {task.comments.slice().reverse().map((comment) => (
+                <div key={comment.id} className="comment-card">
+                  <strong>{comment.author}</strong>
+                  <p>{comment.text}</p>
+                  <span>{comment.time}</span>
+                </div>
+              ))}
+            </div>
+            <div className="comment-box">
+              <textarea rows="4" placeholder="Write a comment" />
+              <button type="button" className="primary-button">Post comment</button>
+            </div>
           </div>
-          <textarea rows="3" placeholder="Write a comment" />
         </article>
       </div>
     </section>
@@ -290,11 +310,6 @@ function KanbanPage({ workspace }) {
             {workspace.tasks.filter((task) => task.status === column).map((task) => (
               <Link key={task.id} to={`/tasks/${task.id}`} className="kanban-card">
                 <strong>{task.title}</strong>
-                <p>{task.description}</p>
-                <div className="task-tags">
-                  <span className="soft-pill">{task.priority}</span>
-                  <span>{task.assignee}</span>
-                </div>
               </Link>
             ))}
           </article>

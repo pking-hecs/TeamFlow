@@ -6,7 +6,6 @@ import { formatShortDate } from '../data/mockWorkspace.js';
 function StatCard({ label, value, icon, accent }) {
   return (
     <div className="stat-card">
-      <span className="stat-icon" style={accent ? { color: accent } : {}}>{icon}</span>
       <strong className="stat-value">{value}</strong>
       <span className="stat-label">{label}</span>
     </div>
@@ -17,8 +16,8 @@ function StatCard({ label, value, icon, accent }) {
 function TaskRing({ completed, total }) {
   const arcRef = useRef(null);
   const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-  const R   = 68;
-  const SW  = 9;
+  const R   = 112;
+  const SW  = 14;
   const r   = R - SW / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (pct / 100) * circ;
@@ -44,16 +43,7 @@ function TaskRing({ completed, total }) {
         height={R * 2}
         viewBox={`0 0 ${R * 2} ${R * 2}`}
       >
-        <defs>
-          <linearGradient id="rg" x1="1" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#e11d48" />
-            <stop offset="100%" stopColor="#ff5a30" />
-          </linearGradient>
-          <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="3.5" result="blur" />
-            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
+
 
         {/* Track */}
         <circle cx={R} cy={R} r={r} fill="none"
@@ -64,13 +54,12 @@ function TaskRing({ completed, total }) {
           ref={arcRef}
           cx={R} cy={R} r={r}
           fill="none"
-          stroke="url(#rg)"
+          stroke="var(--accent)"
           strokeWidth={SW}
           strokeLinecap="round"
           strokeDasharray={circ}
           strokeDashoffset={circ}
           transform={`rotate(-90 ${R} ${R})`}
-          filter="url(#glow)"
         />
       </svg>
 
@@ -91,21 +80,15 @@ export default function Dashboard({ teams, workspace, stats }) {
   return (
     <section className="page-stack">
 
-      {/* ── Row 1: KPI stat cards ── */}
-      <div className="stats-row">
-        <StatCard label="Active Teams"        value={stats.teamCount}          icon="◌" />
-        <StatCard label="Total Members"       value={stats.memberCount}        icon="◍" />
-        <StatCard label="Projects in Flight"  value={stats.inProgressProjects} icon="▣" />
-        <StatCard label="Open Tasks"          value={stats.pendingTasks}       icon="☑" />
-      </div>
-
-      {/* ── Row 2: Tasks ring  +  Teams + Deadlines ── */}
       <div className="dash-top-grid">
-
-        {/* Left: Teams + Upcoming Deadlines stacked */}
         <div className="dash-left">
+          <div className="stats-row stats-row--stacked">
+            <StatCard label="Active Teams"        value={stats.teamCount}          icon="◌" />
+            <StatCard label="Total Members"       value={stats.memberCount}        icon="◍" />
+            <StatCard label="Projects in Flight"  value={stats.inProgressProjects} icon="▣" />
+            <StatCard label="Open Tasks"          value={stats.pendingTasks}       icon="☑" />
+          </div>
 
-          {/* Teams */}
           <article className="glass-card">
             <div className="section-heading">
               <div>
@@ -121,34 +104,6 @@ export default function Dashboard({ teams, workspace, stats }) {
                   <div>
                     <strong>{team.name}</strong>
                     <span>{team.member_count || 0} members</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </article>
-
-          {/* Upcoming deadlines */}
-          <article className="glass-card">
-            <div className="section-heading">
-              <div>
-                <span className="eyebrow">Projects</span>
-                <h3>Upcoming deadlines</h3>
-              </div>
-              <Link to="/projects" className="text-action">Manage →</Link>
-            </div>
-            <div className="project-deadline-list">
-              {topProjects.map((project) => (
-                <Link key={project.id} to={`/projects/${project.id}`} className="deadline-row">
-                  <div className="deadline-icon">{project.name.slice(0, 1)}</div>
-                  <div className="deadline-copy">
-                    <strong>{project.name}</strong>
-                    <span>Due {formatShortDate(project.deadline)}</span>
-                  </div>
-                  <div className="deadline-progress">
-                    <span>{project.progress}%</span>
-                    <div className="progress-bar-track">
-                      <div className="progress-bar-fill" style={{ width: `${project.progress}%` }} />
-                    </div>
                   </div>
                 </Link>
               ))}
@@ -205,6 +160,33 @@ export default function Dashboard({ teams, workspace, stats }) {
           </div>
         </article>
       </div>
+
+      <article className="glass-card project-group-full">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Projects</span>
+            <h3>Upcoming deadlines</h3>
+          </div>
+          <Link to="/projects" className="text-action">Manage →</Link>
+        </div>
+        <div className="project-deadline-list project-deadline-list--wide">
+          {topProjects.map((project) => (
+            <Link key={project.id} to={`/projects/${project.id}`} className="deadline-row">
+              <div className="deadline-icon">{project.name.slice(0, 1)}</div>
+              <div className="deadline-copy">
+                <strong>{project.name}</strong>
+                <span>Due {formatShortDate(project.deadline)}</span>
+              </div>
+              <div className="deadline-progress">
+                <span>{project.progress}%</span>
+                <div className="progress-bar-track">
+                  <div className="progress-bar-fill" style={{ width: `${project.progress}%` }} />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </article>
 
     </section>
   );

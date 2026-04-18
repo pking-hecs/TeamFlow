@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BrowserRouter, Navigate, NavLink, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Dashboard from './pages/Dashboard.jsx';
 import TeamsPage from './pages/Teams.jsx';
@@ -14,41 +14,40 @@ import {
 import { selectTeams } from './store/teamsSlice.js';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '◫' },
-  { to: '/teams',     label: 'Teams',     icon: '◌' },
-  { to: '/projects',  label: 'Projects',  icon: '▣' },
-  { to: '/tasks',     label: 'Tasks',     icon: '☑' },
-  { to: '/kanban',    label: 'Kanban',    icon: '⋮' },
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/teams',     label: 'Teams' },
+  { to: '/projects',  label: 'Projects' },
+  { to: '/tasks',     label: 'Tasks' },
+  { to: '/kanban',    label: 'Kanban' },
 ];
 
 function ThemeToggle({ theme, onToggle }) {
   return (
-    <button className="theme-toggle" onClick={onToggle} aria-label="Toggle light and dark mode">
-      <span className={theme === 'light' ? 'active' : ''}>Light</span>
-      <span className={theme === 'dark' ? 'active' : ''}>Dark</span>
+    <button className="ghost-block theme-toggle-btn" onClick={onToggle} aria-label="Toggle light and dark mode">
+      {theme === 'light' ? '☾ Dark Mode' : '☀ Light Mode'}
     </button>
   );
 }
 
-function Navbar({ theme, onToggleTheme }) {
+function Navbar({ theme, onToggleTheme, profile }) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   return (
     <header className="top-navbar">
-      <div className="brand-lockup">
-        <div className="brand-mark">B</div>
-        <div>
-          <strong>Be.Run</strong>
-          <p>Workspace OS</p>
-        </div>
+      <div className="navbar-left">
+        <NavLink to="/dashboard" className="navbar-logo">
+          <span className="logo-icon">⚡</span>
+          <strong>TeamFlow</strong>
+        </NavLink>
       </div>
 
-      <nav className="topnav-links" aria-label="Primary navigation">
+      <nav className="topnav-links middle-nav" aria-label="Primary navigation">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) => `topnav-link${isActive ? ' active' : ''}`}
           >
-            <span className="topnav-icon">{item.icon}</span>
             <span className="topnav-text">{item.label}</span>
           </NavLink>
         ))}
@@ -56,7 +55,26 @@ function Navbar({ theme, onToggleTheme }) {
 
       <div className="topnav-actions">
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-        <button className="ghost-block">Logout</button>
+        {profile && (
+          <div className="nav-profile-container">
+            <button 
+              className="user-avatar-trigger"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              {profile.name.slice(0, 1).toUpperCase()}
+            </button>
+            {dropdownOpen && (
+              <div className="nav-profile-dropdown">
+                <div className="nav-profile-info">
+                  <strong>{profile.name}</strong>
+                  <span>{profile.title}</span>
+                </div>
+                <div className="dropdown-divider"></div>
+                <button className="ghost-block nav-logout">Logout</button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );
@@ -162,6 +180,7 @@ function AccountPage() {
 }
 
 function Shell() {
+  const location = useLocation();
   const teams = useSelector(selectTeams);
   const workspace = useMemo(() => buildWorkspaceData(teams), [teams]);
   const stats = useMemo(() => getWorkspaceStats(teams, workspace), [teams, workspace]);
@@ -178,11 +197,10 @@ function Shell() {
 
   return (
     <div className="app-frame">
+      <Navbar theme={theme} onToggleTheme={toggleTheme} profile={profile} />
       <main className="app-main">
         <div className="app-surface">
-          <Navbar theme={theme} onToggleTheme={toggleTheme} />
-          <Topbar stats={stats} />
-
+          {location.pathname === '/dashboard' ? <Topbar stats={stats} /> : null}
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard teams={teams} workspace={workspace} stats={stats} />} />

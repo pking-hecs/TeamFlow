@@ -20,7 +20,7 @@ export default function Navbar() {
         </div>
         <div style={{
           width: 34, height: 34, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #6c63ff, #4a44cc)',
+          background: 'var(--accent)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontWeight: 700, fontSize: '0.8rem',
         }}>U</div>
