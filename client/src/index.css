@@ -560,6 +560,113 @@ textarea {
   border: 1px solid var(--accent-mid);
 }
 
+/* ── Role badges (Teams member table) ── */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.admin-badge {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+[data-theme='dark'] .admin-badge {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.member-badge {
+  background: var(--surface-strong);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+/* ── Leave Team / Danger zone ── */
+.danger-zone-card {
+  border-left: 3px solid #ef4444;
+}
+
+.danger-eyebrow {
+  color: #ef4444 !important;
+}
+
+.danger-zone-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.leave-team-btn {
+  flex-shrink: 0;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: 1.5px solid #ef4444;
+  background: transparent;
+  color: #ef4444;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+  white-space: nowrap;
+}
+
+.leave-team-btn:hover:not(:disabled) {
+  background: #ef4444;
+  color: #fff;
+}
+
+.leave-team-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.leave-confirm-box {
+  margin-top: 1.1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  display: grid;
+  gap: 1rem;
+}
+
+[data-theme='dark'] .leave-confirm-box {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.leave-confirm-text {
+  margin: 0;
+  font-size: 0.96rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.leave-confirm-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.danger-btn {
+  background: #ef4444 !important;
+  color: #fff !important;
+}
+
+.danger-btn:hover {
+  opacity: 0.88;
+}
+
 .stack {
   display: grid;
   gap: 0.85rem;

@@ -119,12 +119,16 @@ export function getProfileSummary(teams = [], workspace) {
 }
 
 export function getTeamMembers(team) {
+  // If the team object already has a members array (from Redux/API), use it directly.
+  if (team?.members?.length) return team.members;
+
   const memberCount = team?.member_count || 4;
   return Array.from({ length: memberCount }, (_, index) => ({
     id: `${team?.id || 1}-${index + 1}`,
     name: ['Amanda Ross', 'Jordan Lee', 'Priya Shah', 'Ben Carter', 'Ava Patel', 'Ravi Kumar'][index % 6],
-    role: index === 0 ? 'Admin' : index === 1 ? 'Lead' : 'Member',
-    joinedAt: formatDateLabel(`2026-0${(index % 4) + 1}-${String(10 + index).padStart(2, '0')}`),
+    // First member is always admin — every team must have at least one admin
+    role: index === 0 ? 'admin' : 'member',
+    joined_at: `2026-0${(index % 4) + 1}-${String(10 + index).padStart(2, '0')}`,
     email: `member${index + 1}@berun.app`,
   }));
 }
