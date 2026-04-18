@@ -9,7 +9,7 @@ export const login = createAsyncThunk(
       localStorage.setItem("token", response.data.token);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Invalid username or password");
+      return rejectWithValue(error.response?.data?.message || "Invalid email or password");
     }
   }
 );

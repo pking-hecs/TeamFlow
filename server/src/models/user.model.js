@@ -1,14 +1,15 @@
 const user = [];
 
-const insertUser = async (name, password) => {
+const insertUser = async (name, email, password) => {
     user.push({
         username: name,
+        email: email,
         password: password
     });
 }
 
-const findUser = async (name) => {
-    return user.find(u => u.username === name);
+const findUser = async (email) => {
+    return user.find(u => u.email === email);
 }
 
 export {insertUser, findUser};

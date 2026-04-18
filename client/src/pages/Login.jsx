@@ -4,7 +4,7 @@ import { login, clearError } from '../store/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error, isAuthenticated } = useSelector(state => state.auth);
@@ -50,11 +50,11 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="username">Username</label>
+            <label className="form-label" htmlFor="email">Email</label>
             <input
-              id="username" name="username" type="text" className="form-input"
-              placeholder="Enter your username" value={formData.username}
-              onChange={handleChange} required autoComplete="username"
+              id="email" name="email" type="email" className="form-input"
+              placeholder="Enter your email" value={formData.email}
+              onChange={handleChange} required autoComplete="email"
             />
           </div>
           

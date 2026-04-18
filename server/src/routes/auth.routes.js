@@ -3,11 +3,16 @@ import {body} from "express-validator"
 import {signup, login} from "../controllers/auth.controller.js"
 import authenticateToken from "../middleware/auth.middleware.js"
 
-const validate = [
+const validateSignup = [
     body("username")
     .trim()
     .notEmpty().withMessage("User Required")
     .isAlphanumeric().withMessage("Should contain only letters and numbers"),
+
+    body("email")
+    .trim()
+    .notEmpty().withMessage("Email Required")
+    .isEmail().withMessage("Valid email is required"),
 
     body("password")
     .notEmpty().withMessage("password required")
@@ -16,10 +21,20 @@ const validate = [
     .withMessage("Should contain atleast one letter, digit, special character")
 ]
 
+const validateLogin = [
+    body("email")
+    .trim()
+    .notEmpty().withMessage("Email Required")
+    .isEmail().withMessage("Valid email is required"),
+
+    body("password")
+    .notEmpty().withMessage("password required")
+]
+
 const authRouter = Router();
 
-authRouter.post("/signup", validate, signup);
-authRouter.post('/login', validate, login);
+authRouter.post("/signup", validateSignup, signup);
+authRouter.post('/login', validateLogin, login);
 authRouter.get('/me', authenticateToken, (req, res) => {
     res.json({ user: req.user });
 });

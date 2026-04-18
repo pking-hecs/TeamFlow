@@ -4,7 +4,7 @@ import { registerUser, clearError } from '../store/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ username: '', password: '', confirmPassword: '' });
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
   const [localError, setLocalError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -34,6 +34,7 @@ const Register = () => {
     try {
       const resultAction = await dispatch(registerUser({ 
         username: formData.username, 
+        email: formData.email,
         password: formData.password 
       }));
       if (registerUser.fulfilled.match(resultAction)) {
@@ -74,6 +75,15 @@ const Register = () => {
               id="username" name="username" type="text" className="form-input"
               placeholder="Choose a username" value={formData.username}
               onChange={handleChange} required autoComplete="off"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="email">Email</label>
+            <input
+              id="email" name="email" type="email" className="form-input"
+              placeholder="Enter your email" value={formData.email}
+              onChange={handleChange} required autoComplete="email"
             />
           </div>
           
