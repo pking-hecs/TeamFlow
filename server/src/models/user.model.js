@@ -8,7 +8,7 @@ const insertUser = async (name, password) => {
 }
 
 const findUser = async (name) => {
-    user.find(u => u.username === name);
+    return user.find(u => u.username === name);
 }
 
 export {insertUser, findUser};
