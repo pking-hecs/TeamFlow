@@ -1,20 +1,18 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
-const SECRET_KEY = "my-server-key";
+export const authenticate = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: "Token missing" });
+  }
 
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.split(' ')[1];
-    if(!token){
-        return res.status(401).json({message: "Token missing"});
+  jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret', (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ error: "Invalid or expired Token" });
     }
-    jwt.verify(token, SECRET_KEY, (err, decoded) => {
-        if(err){
-            return res.status(403).json({message: "Invalid or expired Token"});
-        }
-        req.user = decoded;
-        next();
-    })
-}
-
-export default authenticateToken;
+    req.user = decoded;
+    next();
+  });
+};

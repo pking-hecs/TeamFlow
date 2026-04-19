@@ -6,6 +6,8 @@ import mongoose from 'mongoose';
 // Import routes
 import projectRoutes from './routes/projects.routes.js';
 import taskRoutes from './routes/tasks.routes.js';
+import authRoutes from './routes/auth.routes.js';
+import teamRoutes from './routes/teams.routes.js';
 
 dotenv.config();
 
@@ -16,12 +18,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Database connection (commented out until DB is set up)
-// mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/dbs-project')
-//   .then(() => console.log('MongoDB connected'))
-//   .catch(err => console.error('MongoDB connection error:', err));
-
 // Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/teams', teamRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 

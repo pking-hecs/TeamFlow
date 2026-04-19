@@ -1,18 +1,11 @@
 import { Router } from 'express';
+import { authenticate } from '../middleware/auth.middleware.js';
+import { register, login, getMe } from '../controllers/auth.controller.js';
 
 const router = Router();
 
-// Mock endpoints so the server can run without the actual Auth module
-router.post('/login', (req, res) => {
-  res.json({ token: 'mock_token', user: { id: 1, email: 'test@example.com', name: 'Test User' } });
-});
-
-router.post('/register', (req, res) => {
-  res.json({ token: 'mock_token', user: { id: 1, email: 'test@example.com', name: 'Test User' } });
-});
-
-router.get('/me', (req, res) => {
-  res.json({ data: { id: 1, email: 'test@example.com', name: 'Test User' } });
-});
+router.post('/register', register);
+router.post('/login', login);
+router.get('/me', authenticate, getMe);
 
 export default router;
