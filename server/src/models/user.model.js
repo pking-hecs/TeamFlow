@@ -19,3 +19,13 @@ export const findUser = async (email) => {
   if (rows.length === 0) return null;
   return rows[0];
 };
+
+export const findUserById = async (userId) => {
+  const [rows] = await pool.query(
+    'SELECT User_ID as id, User_Name as username, Email_ID as email FROM Users WHERE User_ID = ?',
+    [userId]
+  );
+
+  if (rows.length === 0) return null;
+  return rows[0];
+};
