@@ -1,6 +1,6 @@
-import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./authSlice.js";
-import teamsReducer from "./teamsSlice.js";
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './authSlice';
+import teamsReducer from './teamsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -8,3 +8,5 @@ export const store = configureStore({
     teams: teamsReducer,
   },
 });
+
+export default store;
