@@ -3,7 +3,7 @@ import { insertUser, findUser } from "../models/user.model.js";
 import jwt from "jsonwebtoken"
 import { validationResult } from "express-validator";
 
-const SECRET_KEY = "my-server-key";
+const SECRET_KEY = process.env.JWT_SECRET;
 
 const signup = async (req, res) => {
     const errors = validationResult(req);

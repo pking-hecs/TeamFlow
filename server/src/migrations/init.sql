@@ -172,7 +172,7 @@ DROP TABLE IF EXISTS `Users`;
 CREATE TABLE `Users` (
   `User_ID` varchar(20) NOT NULL,
   `User_Name` varchar(50) DEFAULT NULL,
-  `Email_ID` varchar(50) DEFAULT NULL,
+  `Email_ID` varchar(50) NOT NULL,
   `Password` varchar(255) NOT NULL,
   PRIMARY KEY (`User_ID`),
   UNIQUE KEY `Email_ID` (`Email_ID`)
