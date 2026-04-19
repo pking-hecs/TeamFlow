@@ -171,7 +171,6 @@ CREATE TABLE `Users` (
   `User_Name` varchar(50) DEFAULT NULL,
   `Email_ID` varchar(50) DEFAULT NULL,
   `Password` varchar(255) NOT NULL,
-  `Is_Admin` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`User_ID`),
   UNIQUE KEY `Email_ID` (`Email_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
