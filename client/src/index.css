@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
 :root {
   --primary: #6366f1;
   --primary-hover: #4f46e5;
@@ -110,7 +111,6 @@ body {
   opacity: 0.7;
   cursor: not-allowed;
 }
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
 
 /* ── Design tokens ── */
 :root {

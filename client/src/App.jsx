@@ -73,12 +73,12 @@ function Navbar({ theme, onToggleTheme, profile }) {
               className="user-avatar-trigger"
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
-              {(profile.name || profile.username || 'U').slice(0, 1).toUpperCase()}
+              {(profile.username || profile.name || 'U').slice(0, 1).toUpperCase()}
             </button>
             {dropdownOpen && (
               <div className="nav-profile-dropdown">
                 <div className="nav-profile-info">
-                  <strong>{profile.name || profile.username}</strong>
+                  <strong>{profile.username || profile.name}</strong>
                   <span>{profile.title || 'User'}</span>
                 </div>
                 <div className="dropdown-divider"></div>
