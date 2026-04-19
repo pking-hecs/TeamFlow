@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth.middleware.js';
+import authMiddleware from '../middleware/auth.middleware.js';
 import {
   createTeam,
   getTeams,
@@ -11,7 +11,7 @@ import {
   removeMember,
 } from '../controllers/teams.controller.js';
 const router = Router();
-router.use(authenticate);
+router.use(authMiddleware);
 router.post('/', createTeam);
 router.get('/', getTeams);
 router.get('/:id', getTeam);
