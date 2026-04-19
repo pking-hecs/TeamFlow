@@ -9,16 +9,12 @@
     "dev": "nodemon src/server.js"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
-<<<<<<< HEAD
-    "jsonwebtoken": "^9.0.0",
-    "mongoose": "^7.0.0",
-=======
+    "express-validator": "^7.3.1",
     "jsonwebtoken": "^9.0.3",
->>>>>>> e6b4aa36bff4061a224a9be85373e33c6afc1c04
     "mysql2": "^3.3.0"
   },
   "devDependencies": {
