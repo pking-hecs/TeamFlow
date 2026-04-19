@@ -19,7 +19,7 @@ router.get('/', authMiddleware, async (req, res) => {
     if (req.query.assigneeId) filters.assignee_id = req.query.assigneeId;
     if (req.query.priority) filters.priority = req.query.priority;
 
-    const tasks = await getTasks(filters, req.user._id);
+    const tasks = await getTasks(filters, req.user.id);
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -29,7 +29,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // GET /api/tasks/:id
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
-    const task = await getTask(req.params.id, req.user._id);
+    const task = await getTask(req.params.id, req.user.id);
     res.json(task);
   } catch (error) {
     if (error.message === 'Task not found') {
@@ -42,7 +42,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // POST /api/tasks
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const task = await createTask(req.body, req.user._id);
+    const task = await createTask(req.body, req.user.id);
     res.status(201).json(task);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -52,7 +52,7 @@ router.post('/', authMiddleware, async (req, res) => {
 // PUT /api/tasks/:id
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    const task = await updateTask(req.params.id, req.body, req.user._id);
+    const task = await updateTask(req.params.id, req.body, req.user.id);
     res.json(task);
   } catch (error) {
     if (error.message === 'Task not found') {
@@ -65,7 +65,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // DELETE /api/tasks/:id
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    const deleted = await deleteTask(req.params.id, req.user._id);
+    const deleted = await deleteTask(req.params.id, req.user.id);
     if (!deleted) {
       return res.status(404).json({ message: 'Task not found' });
     }
