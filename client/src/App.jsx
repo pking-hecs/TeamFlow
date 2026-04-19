@@ -1,17 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+
 import Dashboard from './pages/Dashboard.jsx';
 import TeamsPage from './pages/Teams.jsx';
 import TeamDetail from './pages/TeamDetail.jsx';
 import ProjectPage from './pages/Project.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+
 import {
   buildWorkspaceData,
   getProfileSummary,
   getWorkspaceStats,
   selectPrimaryTeamId,
 } from './data/mockWorkspace.js';
-import { selectTeams } from './store/teamsSlice.js';
+import { selectTeams, fetchTeams } from './store/teamsSlice.js';
+import { fetchMe, logout } from './store/authSlice.js';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -31,6 +36,13 @@ function ThemeToggle({ theme, onToggle }) {
 
 function Navbar({ theme, onToggleTheme, profile }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
 
   return (
     <header className="top-navbar">
@@ -61,16 +73,16 @@ function Navbar({ theme, onToggleTheme, profile }) {
               className="user-avatar-trigger"
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
-              {profile.name.slice(0, 1).toUpperCase()}
+              {(profile.username || profile.name || 'U').slice(0, 1).toUpperCase()}
             </button>
             {dropdownOpen && (
               <div className="nav-profile-dropdown">
                 <div className="nav-profile-info">
-                  <strong>{profile.name}</strong>
-                  <span>{profile.title}</span>
+                  <strong>{profile.username || profile.name}</strong>
+                  <span>{profile.title || 'User'}</span>
                 </div>
                 <div className="dropdown-divider"></div>
-                <button className="ghost-block nav-logout">Logout</button>
+                <button className="ghost-block nav-logout" onClick={handleLogout}>Logout</button>
               </div>
             )}
           </div>
@@ -97,95 +109,28 @@ function Topbar({ stats }) {
   );
 }
 
-function ProfilePage({ profile }) {
-  return (
-    <section className="page-stack">
-      <div className="hero-card">
-        <div>
-          <span className="eyebrow">User profile</span>
-          <h2>{profile.name}</h2>
-          <p>{profile.title}</p>
-        </div>
-        <div className="profile-chip">
-          <strong>{profile.focusHours}</strong>
-          <span>focus hours this week</span>
-        </div>
-      </div>
-
-      <div className="content-grid two-up">
-        <article className="glass-card">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Overview</span>
-              <h3>Personal details</h3>
-            </div>
-          </div>
-          <div className="detail-list">
-            <div><span>Email</span><strong>{profile.email}</strong></div>
-            <div><span>Role</span><strong>{profile.title}</strong></div>
-            <div><span>Timezone</span><strong>{profile.timezone}</strong></div>
-            <div><span>Primary team</span><strong>{profile.primaryTeam}</strong></div>
-          </div>
-        </article>
-
-        <article className="glass-card">
-          <div className="section-heading">
-            <div>
-              <span className="eyebrow">Preferences</span>
-              <h3>Work preferences</h3>
-            </div>
-          </div>
-          <div className="pill-grid">
-            {profile.preferences.map((item) => (
-              <span key={item} className="soft-pill">{item}</span>
-            ))}
-          </div>
-        </article>
-      </div>
-    </section>
-  );
-}
-
-function AccountPage() {
-  return (
-    <section className="page-stack">
-      <div className="section-heading">
-        <div>
-          <span className="eyebrow">Account settings</span>
-          <h2>Security and notifications</h2>
-        </div>
-      </div>
-
-      <div className="content-grid two-up">
-        <article className="glass-card">
-          <h3>Notifications</h3>
-          <div className="settings-list">
-            <label><input type="checkbox" defaultChecked /> Daily project summary</label>
-            <label><input type="checkbox" defaultChecked /> Comments on assigned tasks</label>
-            <label><input type="checkbox" /> Weekly digest email</label>
-          </div>
-        </article>
-
-        <article className="glass-card">
-          <h3>Security</h3>
-          <div className="settings-list">
-            <label><input type="checkbox" defaultChecked /> Two-factor authentication</label>
-            <label><input type="checkbox" defaultChecked /> Session alerts</label>
-            <button className="primary-button" style={{ marginTop: '0.5rem' }}>Update password</button>
-          </div>
-        </article>
-      </div>
-    </section>
-  );
-}
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useSelector(state => state.auth);
+  
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>;
+  
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
 
 function Shell() {
   const location = useLocation();
-  const teams = useSelector(selectTeams);
+  const dispatch = useDispatch();
+  const teams = useSelector(selectTeams) || [];
   const workspace = useMemo(() => buildWorkspaceData(teams), [teams]);
   const stats = useMemo(() => getWorkspaceStats(teams, workspace), [teams, workspace]);
   const profile = useMemo(() => getProfileSummary(teams, workspace), [teams, workspace]);
   const [theme, setTheme] = useState(() => localStorage.getItem('dbs-theme') || 'light');
+  
+  const { user } = useSelector(state => state.auth);
+
+  useEffect(() => {
+    dispatch(fetchTeams());
+  }, [dispatch]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -193,11 +138,12 @@ function Shell() {
   }, [theme]);
 
   const toggleTheme = () => setTheme((current) => current === 'light' ? 'dark' : 'light');
-  const primaryTeamId = selectPrimaryTeamId(teams);
+
+  const userProfile = { ...profile, ...user };
 
   return (
     <div className="app-frame">
-      <Navbar theme={theme} onToggleTheme={toggleTheme} profile={profile} />
+      <Navbar theme={theme} onToggleTheme={toggleTheme} profile={userProfile} />
       <main className="app-main">
         <div className="app-surface">
           {location.pathname === '/dashboard' ? <Topbar stats={stats} /> : null}
@@ -213,9 +159,7 @@ function Shell() {
             <Route path="/tasks" element={<ProjectPage teams={teams} workspace={workspace} view="tasks" />} />
             <Route path="/tasks/:taskId" element={<ProjectPage teams={teams} workspace={workspace} view="task-detail" />} />
             <Route path="/kanban" element={<ProjectPage teams={teams} workspace={workspace} view="kanban" />} />
-            <Route path="/profile" element={<ProfilePage profile={profile} />} />
-            <Route path="/account" element={<AccountPage />} />
-            <Route path="*" element={<Navigate to={`/teams/${primaryTeamId}`} replace />} />
+            <Route path="*" element={<Navigate to={`/dashboard`} replace />} />
           </Routes>
         </div>
       </main>
@@ -224,9 +168,25 @@ function Shell() {
 }
 
 export default function App() {
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      dispatch(fetchMe());
+    }
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
-      <Shell />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={
+          <PrivateRoute>
+            <Shell />
+          </PrivateRoute>
+        } />
+      </Routes>
     </BrowserRouter>
   );
 }

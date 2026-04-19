@@ -1,18 +1,42 @@
-import { Router } from 'express';
+import {Router} from "express"
+import {body} from "express-validator"
+import {signup, login} from "../controllers/auth.controller.js"
+import authenticateToken from "../middleware/auth.middleware.js"
 
-const router = Router();
+const validateSignup = [
+    body("username")
+    .trim()
+    .notEmpty().withMessage("User Required")
+    .isAlphanumeric().withMessage("Should contain only letters and numbers"),
 
-// Mock endpoints so the server can run without the actual Auth module
-router.post('/login', (req, res) => {
-  res.json({ token: 'mock_token', user: { id: 1, email: 'test@example.com', name: 'Test User' } });
+    body("email")
+    .trim()
+    .notEmpty().withMessage("Email Required")
+    .isEmail().withMessage("Valid email is required"),
+
+    body("password")
+    .notEmpty().withMessage("password required")
+    .isLength({min: 8}).withMessage("Should be of atleast 8 characters")
+    .matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/)
+    .withMessage("Should contain atleast one letter, digit, special character")
+]
+
+const validateLogin = [
+    body("email")
+    .trim()
+    .notEmpty().withMessage("Email Required")
+    .isEmail().withMessage("Valid email is required"),
+
+    body("password")
+    .notEmpty().withMessage("password required")
+]
+
+const authRouter = Router();
+
+authRouter.post("/signup", validateSignup, signup);
+authRouter.post('/login', validateLogin, login);
+authRouter.get('/me', authenticateToken, (req, res) => {
+    res.json({ user: req.user });
 });
 
-router.post('/register', (req, res) => {
-  res.json({ token: 'mock_token', user: { id: 1, email: 'test@example.com', name: 'Test User' } });
-});
-
-router.get('/me', (req, res) => {
-  res.json({ data: { id: 1, email: 'test@example.com', name: 'Test User' } });
-});
-
-export default router;
+export default authRouter;

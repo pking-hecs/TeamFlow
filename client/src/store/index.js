@@ -1,9 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import teamsReducer from './teamsSlice.js';
-const store = configureStore({
+import authReducer from './authSlice';
+import teamsReducer from './teamsSlice';
+
+export const store = configureStore({
   reducer: {
+    auth: authReducer,
     teams: teamsReducer,
   },
-  middleware: (getDefault) => getDefault({ serializableCheck: false }),
 });
+
 export default store;

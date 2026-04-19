@@ -1,31 +1,21 @@
-import mongoose from 'mongoose';
+import pool from '../db/connection.js';
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  }
-}, {
-  timestamps: true
-});
+export const insertUser = async (name, email, password) => {
+  // Generate a random User_ID since schema uses varchar(20)
+  const userId = 'U' + Date.now().toString().slice(-8);
 
-const User = mongoose.model('User', userSchema);
+  await pool.query(
+    'INSERT INTO Users (User_ID, User_Name, Email_ID, Password) VALUES (?, ?, ?, ?)',
+    [userId, name, email, password]
+  );
+};
 
-export default User;
+export const findUser = async (email) => {
+  const [rows] = await pool.query(
+    'SELECT User_ID as id, User_Name as username, Email_ID as email, Password as password FROM Users WHERE Email_ID = ?',
+    [email]
+  );
+
+  if (rows.length === 0) return null;
+  return rows[0];
+};
