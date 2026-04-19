@@ -1,24 +1,21 @@
 import pool from '../db/connection.js';
-import crypto from 'crypto';
 
-export async function createUser({ name, email, password }) {
-  const userId = crypto.randomUUID();
-  const query = `
-    INSERT INTO Users (User_ID, Name, Email_ID, Password)
-    VALUES (?, ?, ?, ?)
-  `;
-  
-  await pool.query(query, [userId, name, email, password]);
-  
-  return findUserById(userId);
-}
+export const insertUser = async (name, email, password) => {
+  // Generate a random User_ID since schema uses varchar(20)
+  const userId = 'U' + Date.now().toString().slice(-8);
 
-export async function findUserByEmail(email) {
-  const [rows] = await pool.query('SELECT * FROM Users WHERE Email_ID = ?', [email]);
-  return rows[0] || null;
-}
+  await pool.query(
+    'INSERT INTO Users (User_ID, User_Name, Email_ID, Password) VALUES (?, ?, ?, ?)',
+    [userId, name, email, password]
+  );
+};
 
-export async function findUserById(id) {
-  const [rows] = await pool.query('SELECT * FROM Users WHERE User_ID = ?', [id]);
-  return rows[0] || null;
-}
+export const findUser = async (email) => {
+  const [rows] = await pool.query(
+    'SELECT User_ID as id, User_Name as username, Email_ID as email, Password as password FROM Users WHERE Email_ID = ?',
+    [email]
+  );
+
+  if (rows.length === 0) return null;
+  return rows[0];
+};

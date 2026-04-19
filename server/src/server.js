@@ -1,40 +1,55 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 
-// Import routes
+// Your routes
+import teamsRouter from './routes/teams.routes.js';
+import authRouter from './routes/auth.routes.js';
+
+// Teammate routes (ONLY if they don't depend on mongoose)
 import projectRoutes from './routes/projects.routes.js';
 import taskRoutes from './routes/tasks.routes.js';
-import authRoutes from './routes/auth.routes.js';
-import teamRoutes from './routes/teams.routes.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS (important for frontend)
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true,
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Health check
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/teams', teamRoutes);
+app.use('/api/auth', authRouter);
+app.use('/api/teams', teamsRouter);
+
+// Add these ONLY if they are NOT using mongoose
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ message: 'Server is running' });
+// Error handling
+app.use((err, _req, res, _next) => {
+  console.error('[Error]', err);
+  const status = err.status || 500;
+  res.status(status).json({
+    error: err.message || 'Internal Server Error',
+  });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
-
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`server running on http://localhost:${PORT}`);
 });
+
+export default app;

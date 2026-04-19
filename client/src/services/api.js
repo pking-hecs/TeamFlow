@@ -1,9 +1,25 @@
 import axios from 'axios';
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const authAPI = {
+  login: (credentials) => api.post("/api/auth/login", credentials),
+  register: (userData) => api.post("/api/auth/signup", userData),
+  me: () => api.get("/api/auth/me"),
+};
+
 // Named helpers for teams endpoints
 export const teamsApi = {
   getAll:       ()                 => api.get('/api/teams'),
@@ -15,4 +31,5 @@ export const teamsApi = {
   updateMember: (id, userId, data) => api.patch(`/api/teams/${id}/members/${userId}`, data),
   removeMember: (id, userId)       => api.delete(`/api/teams/${id}/members/${userId}`),
 };
+
 export default api;

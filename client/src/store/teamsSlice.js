@@ -1,45 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { teamsApi } from '../services/api.js';
 // ─── Sample data for design testing (remove when backend is ready) ────────────
-const SAMPLE_TEAMS = [
-  {
-    id: 1, name: 'Frontend Squad', role: 'admin', member_count: 4,
-    requesting_user_role: 'admin',
-    description: 'Building the React UI and design system for the project.',
-    created_at: new Date().toISOString(),
-    members: [
-      { id: 1, name: 'Naseh Sayrawala', email: 'naseh@example.com',   role: 'admin',  joined_at: new Date().toISOString() },
-      { id: 2, name: 'Aditya Gayan',    email: 'aditya@example.com',  role: 'member', joined_at: new Date().toISOString() },
-      { id: 3, name: 'Ayush Jena',      email: 'ayush@example.com',   role: 'member', joined_at: new Date().toISOString() },
-      { id: 4, name: 'Tarun P',         email: 'tarun@example.com',   role: 'member', joined_at: new Date().toISOString() },
-    ],
-  },
-  {
-    id: 2, name: 'Backend Team', role: 'member', member_count: 3,
-    requesting_user_role: 'admin',
-    description: 'Handles Express APIs, database schema, and authentication.',
-    created_at: new Date().toISOString(),
-    members: [
-      { id: 5, name: 'Jordan Lee',  email: 'jordan@example.com', role: 'admin',  joined_at: new Date().toISOString() },
-      { id: 6, name: 'Priya Shah',  email: 'priya@example.com',  role: 'member', joined_at: new Date().toISOString() },
-      { id: 7, name: 'Ben Carter',  email: 'ben@example.com',    role: 'member', joined_at: new Date().toISOString() },
-    ],
-  },
-  {
-    id: 3, name: 'Design & QA', role: 'member', member_count: 2,
-    requesting_user_role: 'admin',
-    description: 'UI/UX design reviews and end-to-end testing.',
-    created_at: new Date().toISOString(),
-    members: [
-      { id: 8, name: 'Ava Patel',   email: 'ava@example.com',   role: 'admin',  joined_at: new Date().toISOString() },
-      { id: 9, name: 'Ravi Kumar',  email: 'ravi@example.com',  role: 'member', joined_at: new Date().toISOString() },
-    ],
-  },
-];
-const SAMPLE_CURRENT_TEAM = {
-  ...SAMPLE_TEAMS[0],
-  requesting_user_role: 'admin',
-};
+const SAMPLE_TEAMS = [];
+const SAMPLE_CURRENT_TEAM = null;
 export const fetchTeams = createAsyncThunk('teams/fetchAll', async (_, { rejectWithValue }) => {
   try {
     const res = await teamsApi.getAll();
@@ -104,6 +67,9 @@ export const removeTeamMember = createAsyncThunk('teams/removeMember', async ({ 
     return rejectWithValue(err.response?.data?.error || 'Failed to remove member');
   }
 });
+
+export const fetchUserTeams = fetchTeams; // Alias for backward compatibility with older components
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 const teamsSlice = createSlice({
   name: 'teams',
@@ -114,6 +80,7 @@ const teamsSlice = createSlice({
     actionLoading: false,
     error:         null,
     actionError:   null,
+    items: [], // to be backward compatible
   },
   reducers: {
     clearActionError(state) { state.actionError = null; },
@@ -123,7 +90,7 @@ const teamsSlice = createSlice({
     builder
       // fetchTeams
       .addCase(fetchTeams.pending,   (s) => { s.loading = true; s.error = null; })
-      .addCase(fetchTeams.fulfilled, (s, a) => { s.loading = false; s.teams = a.payload; })
+      .addCase(fetchTeams.fulfilled, (s, a) => { s.loading = false; s.teams = a.payload; s.items = a.payload; })
       .addCase(fetchTeams.rejected,  (s, a) => { s.loading = false; s.error = a.payload; })
       // fetchTeam (detail panel)
       .addCase(fetchTeam.pending,   (s) => { s.loading = true; s.error = null; })
@@ -131,14 +98,17 @@ const teamsSlice = createSlice({
       .addCase(fetchTeam.rejected,  (s, a) => { s.loading = false; s.error = a.payload; })
       // createTeam
       .addCase(createTeam.pending,   (s) => { s.actionLoading = true; s.actionError = null; })
-      .addCase(createTeam.fulfilled, (s, a) => { s.actionLoading = false; s.teams.unshift(a.payload); })
+      .addCase(createTeam.fulfilled, (s, a) => { s.actionLoading = false; s.teams.unshift(a.payload); s.items.unshift(a.payload); })
       .addCase(createTeam.rejected,  (s, a) => { s.actionLoading = false; s.actionError = a.payload; })
       // updateTeam
       .addCase(updateTeam.pending,   (s) => { s.actionLoading = true; s.actionError = null; })
       .addCase(updateTeam.fulfilled, (s, a) => {
         s.actionLoading = false;
         const idx = s.teams.findIndex((t) => t.id === a.payload.id);
-        if (idx !== -1) s.teams[idx] = { ...s.teams[idx], ...a.payload };
+        if (idx !== -1) {
+          s.teams[idx] = { ...s.teams[idx], ...a.payload };
+          s.items[idx] = s.teams[idx];
+        }
         if (s.currentTeam?.id === a.payload.id) s.currentTeam = { ...s.currentTeam, ...a.payload };
       })
       .addCase(updateTeam.rejected,  (s, a) => { s.actionLoading = false; s.actionError = a.payload; })
@@ -147,6 +117,7 @@ const teamsSlice = createSlice({
       .addCase(deleteTeam.fulfilled, (s, a) => {
         s.actionLoading = false;
         s.teams = s.teams.filter((t) => t.id !== a.payload);
+        s.items = s.items.filter((t) => t.id !== a.payload);
         if (s.currentTeam?.id === a.payload) s.currentTeam = null;
       })
       .addCase(deleteTeam.rejected,  (s, a) => { s.actionLoading = false; s.actionError = a.payload; })

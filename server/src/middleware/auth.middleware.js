@@ -1,18 +1,26 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/user.model.js'; // Assuming user model exists
 
-export const authenticate = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  
-  if (!token) {
-    return res.status(401).json({ error: "Token missing" });
-  }
+const authMiddleware = async (req, res, next) => {
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
 
-  jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret', (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ error: "Invalid or expired Token" });
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
     }
-    req.user = decoded;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    req.user = user;
     next();
-  });
+  } catch (error) {
+    res.status(401).json({ message: 'Authentication failed' });
+  }
 };
+
+export default authMiddleware;

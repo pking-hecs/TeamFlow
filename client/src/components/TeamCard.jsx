@@ -1,4 +1,3 @@
-import React from 'react';
 
 // ─── Color palette (matches CSS team-color-* classes) ─────────────────────────
 const PALETTES = [
