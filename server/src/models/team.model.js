@@ -31,13 +31,22 @@ export const createTeam = async ({ name, description, userId }) => {
     name,
     description: description || null,
     userId,
-    role: 'admin'
+    role: 'admin',
+    member_count: 1
   };
 };
 
 export const getTeamsByUser = async (userId) => {
   const [rows] = await pool.query(
-    `SELECT t.Team_ID as id, t.Team_Name as name, m.Is_Admin
+    `SELECT
+      t.Team_ID as id,
+      t.Team_Name as name,
+      m.Is_Admin,
+      (
+        SELECT COUNT(*)
+        FROM Membership team_members
+        WHERE team_members.Team_ID = t.Team_ID
+      ) as member_count
      FROM Teams t
      JOIN Membership m ON t.Team_ID = m.Team_ID
      WHERE m.User_ID = ?`,
@@ -47,7 +56,8 @@ export const getTeamsByUser = async (userId) => {
   return rows.map(r => ({
     id: r.id,
     name: r.name,
-    role: r.Is_Admin ? 'admin' : 'member'
+    role: r.Is_Admin ? 'admin' : 'member',
+    member_count: r.member_count
   }));
 };
 
