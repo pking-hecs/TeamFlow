@@ -12,7 +12,7 @@ const Login = () => {
   useEffect(() => {
     dispatch(clearError());
     if (isAuthenticated) {
-      navigate('/teams');
+      navigate('/dashboard');
     }
   }, [isAuthenticated, navigate, dispatch]);
 

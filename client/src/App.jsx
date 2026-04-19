@@ -15,6 +15,7 @@ import {
   getWorkspaceStats,
   selectPrimaryTeamId,
 } from './data/mockWorkspace.js';
+import { projectsApi, tasksApi } from './services/api.js';
 import { selectTeams, fetchTeams } from './store/teamsSlice.js';
 import { fetchMe, logout } from './store/authSlice.js';
 
@@ -121,10 +122,12 @@ function Shell() {
   const location = useLocation();
   const dispatch = useDispatch();
   const teams = useSelector(selectTeams) || [];
-  const workspace = useMemo(() => buildWorkspaceData(teams), [teams]);
-  const stats = useMemo(() => getWorkspaceStats(teams, workspace), [teams, workspace]);
-  const profile = useMemo(() => getProfileSummary(teams, workspace), [teams, workspace]);
+  const fallbackWorkspace = useMemo(() => buildWorkspaceData(teams), [teams]);
+  const fallbackStats = useMemo(() => getWorkspaceStats(teams, fallbackWorkspace), [teams, fallbackWorkspace]);
+  const profile = useMemo(() => getProfileSummary(teams, fallbackWorkspace), [teams, fallbackWorkspace]);
   const [theme, setTheme] = useState(() => localStorage.getItem('dbs-theme') || 'light');
+  const [dashboardWorkspace, setDashboardWorkspace] = useState(fallbackWorkspace);
+  const [dashboardStats, setDashboardStats] = useState(fallbackStats);
   
   const { user } = useSelector(state => state.auth);
 
@@ -137,6 +140,92 @@ function Shell() {
     localStorage.setItem('dbs-theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadDashboardData = async () => {
+      if (!teams.length) {
+        if (!active) return;
+        setDashboardWorkspace({ projects: [], tasks: [] });
+        setDashboardStats({
+          teamCount: 0,
+          pendingTasks: 0,
+          inProgressProjects: 0,
+          memberCount: 0,
+        });
+        return;
+      }
+
+      try {
+        const projectGroups = await Promise.all(
+          teams.map((team) => projectsApi.getAll(team.id).then((res) => res.data))
+        );
+        const projects = projectGroups.flat();
+
+        const taskGroups = await Promise.all(
+          projects.map((project) => tasksApi.getAll({ projectId: project.id }).then((res) => res.data))
+        );
+        const tasks = taskGroups.flat();
+
+        const progressByProjectId = tasks.reduce((acc, task) => {
+          const key = String(task.project_id);
+          if (!acc[key]) {
+            acc[key] = { total: 0, done: 0 };
+          }
+          acc[key].total += 1;
+          if (task.status === 'Done') {
+            acc[key].done += 1;
+          }
+          return acc;
+        }, {});
+
+        const normalizedProjects = projects.map((project) => {
+          const progress = progressByProjectId[String(project.id)] || { total: 0, done: 0 };
+          const percent = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
+
+          return {
+            ...project,
+            teamId: project.team_id,
+            progress: percent,
+          };
+        });
+
+        const normalizedTasks = tasks.map((task) => ({
+          ...task,
+          projectId: task.project_id,
+          teamId: task.team_id,
+          assignee: task.assignee_name || 'Unassigned',
+          comments: [],
+        }));
+
+        if (!active) return;
+
+        const workspace = {
+          projects: normalizedProjects,
+          tasks: normalizedTasks,
+        };
+
+        setDashboardWorkspace(workspace);
+        setDashboardStats({
+          teamCount: teams.length,
+          pendingTasks: normalizedTasks.filter((task) => task.status !== 'Done').length,
+          inProgressProjects: normalizedProjects.filter((project) => project.progress < 100).length,
+          memberCount: teams.reduce((sum, team) => sum + (team.member_count || 0), 0),
+        });
+      } catch (_error) {
+        if (!active) return;
+        setDashboardWorkspace(fallbackWorkspace);
+        setDashboardStats(fallbackStats);
+      }
+    };
+
+    loadDashboardData();
+
+    return () => {
+      active = false;
+    };
+  }, [teams, fallbackWorkspace, fallbackStats]);
+
   const toggleTheme = () => setTheme((current) => current === 'light' ? 'dark' : 'light');
 
   const userProfile = { ...profile, ...user };
@@ -146,19 +235,19 @@ function Shell() {
       <Navbar theme={theme} onToggleTheme={toggleTheme} profile={userProfile} />
       <main className="app-main">
         <div className="app-surface">
-          {location.pathname === '/dashboard' ? <Topbar stats={stats} /> : null}
+          {location.pathname === '/dashboard' ? <Topbar stats={dashboardStats} /> : null}
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard teams={teams} workspace={workspace} stats={stats} />} />
-            <Route path="/teams" element={<TeamsPage teams={teams} workspace={workspace} />} />
-            <Route path="/teams/:id" element={<TeamDetail teams={teams} workspace={workspace} mode="detail" />} />
-            <Route path="/teams/:id/settings" element={<TeamDetail teams={teams} workspace={workspace} mode="settings" />} />
-            <Route path="/projects" element={<ProjectPage teams={teams} workspace={workspace} view="projects" />} />
-            <Route path="/projects/new" element={<ProjectPage teams={teams} workspace={workspace} view="create-project" />} />
-            <Route path="/projects/:projectId" element={<ProjectPage teams={teams} workspace={workspace} view="project-detail" />} />
-            <Route path="/tasks" element={<ProjectPage teams={teams} workspace={workspace} view="tasks" />} />
-            <Route path="/tasks/:taskId" element={<ProjectPage teams={teams} workspace={workspace} view="task-detail" />} />
-            <Route path="/kanban" element={<ProjectPage teams={teams} workspace={workspace} view="kanban" />} />
+            <Route path="/dashboard" element={<Dashboard teams={teams} workspace={dashboardWorkspace} stats={dashboardStats} />} />
+            <Route path="/teams" element={<TeamsPage teams={teams} workspace={fallbackWorkspace} />} />
+            <Route path="/teams/:id" element={<TeamDetail teams={teams} workspace={fallbackWorkspace} mode="detail" />} />
+            <Route path="/teams/:id/settings" element={<TeamDetail teams={teams} workspace={fallbackWorkspace} mode="settings" />} />
+            <Route path="/projects" element={<ProjectPage teams={teams} workspace={fallbackWorkspace} view="projects" />} />
+            <Route path="/projects/new" element={<ProjectPage teams={teams} workspace={fallbackWorkspace} view="create-project" />} />
+            <Route path="/projects/:projectId" element={<ProjectPage teams={teams} workspace={fallbackWorkspace} view="project-detail" />} />
+            <Route path="/tasks" element={<ProjectPage teams={teams} workspace={fallbackWorkspace} view="tasks" />} />
+            <Route path="/tasks/:taskId" element={<ProjectPage teams={teams} workspace={fallbackWorkspace} view="task-detail" />} />
+            <Route path="/kanban" element={<ProjectPage teams={teams} workspace={fallbackWorkspace} view="kanban" />} />
             <Route path="*" element={<Navigate to={`/dashboard`} replace />} />
           </Routes>
         </div>

@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTeamMember, removeTeamMember, updateTeamMember, updateTeam, selectCurrentTeam, selectTeams } from '../store/teamsSlice.js';
+import { addTeamMember, fetchTeam, removeTeamMember, updateTeamMember, updateTeam, selectCurrentTeam, selectTeams } from '../store/teamsSlice.js';
 import { getTeamMembers, getTeamProjects } from '../data/mockWorkspace.js';
 
 function TeamMembersPanel({ team }) {
@@ -9,6 +9,7 @@ function TeamMembersPanel({ team }) {
   const navigate = useNavigate();
   const currentTeam = useSelector(selectCurrentTeam);
   const allTeams = useSelector(selectTeams);
+  const authUser = useSelector((state) => state.auth.user);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('member');
   const [leaveConfirm, setLeaveConfirm] = useState(false);
@@ -24,18 +25,17 @@ function TeamMembersPanel({ team }) {
   const members = useMemo(() => {
     if (richTeam?.members?.length) return richTeam.members;
     if (currentTeam?.id === team?.id && currentTeam?.members?.length) return currentTeam.members;
+    if (richTeam?.id || currentTeam?.id === team?.id) return [];
     return getTeamMembers(richTeam);
   }, [richTeam, currentTeam, team]);
 
   // Viewer is admin when the team object says so.
   const isAdmin =
-    richTeam?.requesting_user_role === 'admin' ||
-    currentTeam?.requesting_user_role === 'admin';
+    richTeam?.role === 'admin' ||
+    currentTeam?.role === 'admin';
 
-  // For the demo the "current user" is the first member (id: 1).
-  // When real auth is wired up, replace this with the auth slice user id.
-  const CURRENT_USER_ID = members[0]?.id ?? 1;
-  const currentUserMember = members.find((m) => String(m.id) === String(CURRENT_USER_ID));
+  const currentUserId = authUser?.id;
+  const currentUserMember = members.find((m) => String(m.id) === String(currentUserId));
   const isLastAdmin =
     currentUserMember?.role?.toLowerCase() === 'admin' &&
     members.filter((m) => m.role?.toLowerCase() === 'admin').length <= 1;
@@ -43,12 +43,14 @@ function TeamMembersPanel({ team }) {
   const handleAdd = async (event) => {
     event.preventDefault();
     if (!email.trim()) return;
-    await dispatch(addTeamMember({ teamId: team.id, email: email.trim(), role }));
+    await dispatch(addTeamMember({ teamId: team.id, email: email.trim(), role })).unwrap();
+    await dispatch(fetchTeam(team.id)).unwrap();
     setEmail('');
   };
 
   const handleLeave = async () => {
-    await dispatch(removeTeamMember({ teamId: team.id, userId: CURRENT_USER_ID }));
+    if (!currentUserId) return;
+    await dispatch(removeTeamMember({ teamId: team.id, userId: currentUserId }));
     navigate('/teams');
   };
 
@@ -110,7 +112,10 @@ function TeamMembersPanel({ team }) {
                       className={memberIsAdmin ? 'role-toggle-btn demote' : 'role-toggle-btn promote'}
                       disabled={isOnlyAdmin && memberIsAdmin}
                       title={isOnlyAdmin ? 'Cannot demote the only admin' : roleLabel}
-                      onClick={() => dispatch(updateTeamMember({ teamId: team.id, userId: member.id, role: newRole }))}
+                      onClick={async () => {
+                        await dispatch(updateTeamMember({ teamId: team.id, userId: member.id, role: newRole })).unwrap();
+                        await dispatch(fetchTeam(team.id)).unwrap();
+                      }}
                     >
                       {memberIsAdmin ? '↓ Demote' : '↑ Promote'}
                     </button>
@@ -118,7 +123,10 @@ function TeamMembersPanel({ team }) {
                       className="text-action danger"
                       disabled={isOnlyAdmin}
                       title={isOnlyAdmin ? 'Cannot remove the only admin' : 'Remove member'}
-                      onClick={() => dispatch(removeTeamMember({ teamId: team.id, userId: member.id }))}
+                      onClick={async () => {
+                        await dispatch(removeTeamMember({ teamId: team.id, userId: member.id })).unwrap();
+                        await dispatch(fetchTeam(team.id)).unwrap();
+                      }}
                     >
                       Remove
                     </button>
@@ -196,13 +204,16 @@ function TeamMembersPanel({ team }) {
 
 function TeamSettingsPanel({ team }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [name, setName] = useState(team.name);
   const [description, setDescription] = useState(team.description || '');
   const [iconName, setIconName] = useState('No file chosen');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    await dispatch(updateTeam({ id: team.id, data: { name: name.trim(), description: description.trim() } }));
+    await dispatch(updateTeam({ id: team.id, data: { name: name.trim(), description: description.trim() } })).unwrap();
+    await dispatch(fetchTeam(team.id)).unwrap();
+    navigate(`/teams/${team.id}`);
   };
 
   return (
@@ -241,8 +252,17 @@ function TeamSettingsPanel({ team }) {
 
 export default function TeamDetail({ teams, workspace, mode = 'detail' }) {
   const { id } = useParams();
-  const team = teams.find((item) => String(item.id) === String(id)) || teams[0];
+  const dispatch = useDispatch();
+  const currentTeam = useSelector(selectCurrentTeam);
+  const teamFromList = teams.find((item) => String(item.id) === String(id));
+  const team = String(currentTeam?.id) === String(id) ? currentTeam : teamFromList;
   const projects = getTeamProjects(workspace, team?.id);
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchTeam(id));
+    }
+  }, [dispatch, id]);
 
   if (!team) {
     return (

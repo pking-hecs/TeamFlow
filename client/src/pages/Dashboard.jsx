@@ -73,9 +73,9 @@ function TaskRing({ completed, total }) {
 
 /* ── Dashboard ──────────────────────────────────── */
 export default function Dashboard({ teams, workspace, stats }) {
-  const topProjects    = workspace.projects.slice(0, 4);
+  const topProjects = workspace.projects.slice(0, 4);
   const completedTasks = workspace.tasks.filter((t) => t.status === 'Done').length;
-  const totalTasks     = workspace.tasks.length;
+  const totalTasks = workspace.tasks.length;
 
   return (
     <section className="page-stack">
@@ -175,16 +175,11 @@ export default function Dashboard({ teams, workspace, stats }) {
               <div className="deadline-icon">{project.name.slice(0, 1)}</div>
               <div className="deadline-copy">
                 <strong>{project.name}</strong>
-                <span>Due {formatShortDate(project.deadline)}</span>
-              </div>
-              <div className="deadline-progress">
-                <span>{project.progress}%</span>
-                <div className="progress-bar-track">
-                  <div className="progress-bar-fill" style={{ width: `${project.progress}%` }} />
-                </div>
+                <span>{project.deadline ? `Due ${formatShortDate(project.deadline)}` : 'No deadline'}</span>
               </div>
             </Link>
           ))}
+          {!topProjects.length ? <p>No projects yet.</p> : null}
         </div>
       </article>
 

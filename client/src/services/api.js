@@ -32,4 +32,20 @@ export const teamsApi = {
   removeMember: (id, userId)       => api.delete(`/api/teams/${id}/members/${userId}`),
 };
 
+export const projectsApi = {
+  getAll: (teamId) => api.get('/api/projects', { params: { teamId } }),
+  getById: (id) => api.get(`/api/projects/${id}`),
+  create: (data) => api.post('/api/projects', data),
+  update: (id, data) => api.put(`/api/projects/${id}`, data),
+  delete: (id) => api.delete(`/api/projects/${id}`),
+};
+
+export const tasksApi = {
+  getAll: (params = {}) => api.get('/api/tasks', { params }),
+  getById: (id) => api.get(`/api/tasks/${id}`),
+  create: (data) => api.post('/api/tasks', data),
+  update: (id, data) => api.put(`/api/tasks/${id}`, data),
+  delete: (id) => api.delete(`/api/tasks/${id}`),
+};
+
 export default api;

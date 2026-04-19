@@ -44,7 +44,7 @@ export async function getTeams(req, res) {
 }
 export async function getTeam(req, res) {
   try {
-    const team = await Team.getTeamById(Number(req.params.id), req.user.id);
+    const team = await Team.getTeamById(req.params.id, req.user.id);
     if (!team) {
       return res.status(404).json({ error: 'Team not found or access denied' });
     }
@@ -56,7 +56,7 @@ export async function getTeam(req, res) {
 }
 export async function updateTeam(req, res) {
   try {
-    const teamId = Number(req.params.id);
+    const teamId = req.params.id;
     const admin = await requireAdmin(teamId, req.user.id, res);
     if (!admin) return;
     const { name, description } = req.body;
@@ -73,7 +73,7 @@ export async function updateTeam(req, res) {
 }
 export async function deleteTeam(req, res) {
   try {
-    const teamId = Number(req.params.id);
+    const teamId = req.params.id;
     const admin = await requireAdmin(teamId, req.user.id, res);
     if (!admin) return;
     await Team.deleteTeam(teamId);
@@ -85,7 +85,7 @@ export async function deleteTeam(req, res) {
 }
 export async function addMember(req, res) {
   try {
-    const teamId = Number(req.params.id);
+    const teamId = req.params.id;
     const admin = await requireAdmin(teamId, req.user.id, res);
     if (!admin) return;
     const { email, role = 'member' } = req.body;
@@ -111,8 +111,8 @@ export async function addMember(req, res) {
 }
 export async function updateMemberRole(req, res) {
   try {
-    const teamId = Number(req.params.id);
-    const userId = Number(req.params.userId);
+    const teamId = req.params.id;
+    const userId = req.params.userId;
     const admin = await requireAdmin(teamId, req.user.id, res);
     if (!admin) return;
     const { role } = req.body;
@@ -139,8 +139,8 @@ export async function updateMemberRole(req, res) {
 }
 export async function removeMember(req, res) {
   try {
-    const teamId = Number(req.params.id);
-    const userId = Number(req.params.userId);
+    const teamId = req.params.id;
+    const userId = req.params.userId;
     const selfAction = req.user.id === userId;
     const requester = await requireMembership(teamId, req.user.id, res);
     if (!requester) return;

@@ -4,8 +4,18 @@ import * as Team from '../models/team.model.js';
 async function requireTeamAccess(teamId, userId, res) {
   const member = await Team.getMember(teamId, userId);
   if (!member) {
-    res.status(403).json({ error: 'You are not a member of this team' });
+    if (res) res.status(403).json({ error: 'You are not a member of this team' });
     return null;
+  }
+  return member;
+}
+
+async function requireTeamAdmin(teamId, userId, res) {
+  const member = await requireTeamAccess(teamId, userId, res);
+  if (!member) return null;
+  if (member.role !== 'admin') {
+    if (res) res.status(403).json({ error: 'Only team admins can manage projects' });
+    throw new Error('Admin privileges required');
   }
   return member;
 }
@@ -32,7 +42,7 @@ export const createProject = async (projectData, userId) => {
     throw new Error('team_id is required');
   }
   
-  await requireTeamAccess(team_id, userId, null);
+  await requireTeamAdmin(team_id, userId, null);
   
   return await Project.createProject(team_id, { name, description, deadline });
 };
@@ -43,7 +53,7 @@ export const updateProject = async (projectId, projectData, userId) => {
     throw new Error('Project not found');
   }
   
-  await requireTeamAccess(project.team_id, userId, null);
+  await requireTeamAdmin(project.team_id, userId, null);
   
   return await Project.updateProject(projectId, projectData);
 };
@@ -54,7 +64,7 @@ export const deleteProject = async (projectId, userId) => {
     return false;
   }
   
-  await requireTeamAccess(project.team_id, userId, null);
+  await requireTeamAdmin(project.team_id, userId, null);
   
   return await Project.deleteProject(projectId);
 };
