@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { addTeamMember, fetchTeam, removeTeamMember, updateTeamMember, updateTeam, selectCurrentTeam, selectTeams } from '../store/teamsSlice.js';
+import { addTeamMember, clearCurrentTeam, fetchTeam, fetchTeams, removeTeamMember, updateTeamMember, updateTeam, selectCurrentTeam, selectTeams } from '../store/teamsSlice.js';
 import { getTeamMembers, getTeamProjects } from '../data/mockWorkspace.js';
+import { getStoredLogo, readFileAsDataUrl, saveStoredLogo } from '../utils/logoStorage.js';
 
 function TeamMembersPanel({ team }) {
   const dispatch = useDispatch();
@@ -50,8 +51,10 @@ function TeamMembersPanel({ team }) {
 
   const handleLeave = async () => {
     if (!currentUserId) return;
-    await dispatch(removeTeamMember({ teamId: team.id, userId: currentUserId }));
-    navigate('/teams');
+    await dispatch(removeTeamMember({ teamId: team.id, userId: currentUserId })).unwrap();
+    dispatch(clearCurrentTeam());
+    await dispatch(fetchTeams()).unwrap();
+    navigate('/teams', { replace: true });
   };
 
   return (
@@ -208,10 +211,16 @@ function TeamSettingsPanel({ team }) {
   const [name, setName] = useState(team.name);
   const [description, setDescription] = useState(team.description || '');
   const [iconName, setIconName] = useState('No file chosen');
+  const [logoFile, setLogoFile] = useState(null);
+  const currentLogo = getStoredLogo('team', team.id);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     await dispatch(updateTeam({ id: team.id, data: { name: name.trim(), description: description.trim() } })).unwrap();
+    if (logoFile) {
+      const dataUrl = await readFileAsDataUrl(logoFile);
+      saveStoredLogo('team', team.id, dataUrl);
+    }
     await dispatch(fetchTeam(team.id)).unwrap();
     navigate(`/teams/${team.id}`);
   };
@@ -240,10 +249,15 @@ function TeamSettingsPanel({ team }) {
           Team icon
           <input
             type="file"
-            onChange={(e) => setIconName(e.target.files?.[0]?.name || 'No file chosen')}
+            accept="image/*"
+            onChange={(e) => {
+              setLogoFile(e.target.files?.[0] || null);
+              setIconName(e.target.files?.[0]?.name || 'No file chosen');
+            }}
           />
           <small>{iconName}</small>
         </label>
+        {currentLogo ? <img src={currentLogo} alt={`${team.name} logo`} className="entity-logo-preview" /> : null}
         <button type="submit" className="primary-button">Save settings</button>
       </form>
     </article>
@@ -257,6 +271,7 @@ export default function TeamDetail({ teams, workspace, mode = 'detail' }) {
   const teamFromList = teams.find((item) => String(item.id) === String(id));
   const team = String(currentTeam?.id) === String(id) ? currentTeam : teamFromList;
   const projects = getTeamProjects(workspace, team?.id);
+  const teamLogo = team ? getStoredLogo('team', team.id) : '';
 
   useEffect(() => {
     if (id) {
@@ -279,6 +294,7 @@ export default function TeamDetail({ teams, workspace, mode = 'detail' }) {
       <div className="hero-card">
         <div>
           <span className="eyebrow">Workspace snapshot</span>
+          {teamLogo ? <img src={teamLogo} alt={`${team.name} logo`} className="entity-logo-preview entity-logo-preview--hero" /> : null}
           <h2>{team.name}</h2>
           <p>{team.description || 'A dedicated team workspace for projects, tasks, and collaboration.'}</p>
         </div>

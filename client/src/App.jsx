@@ -80,7 +80,6 @@ function Navbar({ theme, onToggleTheme, profile }) {
               <div className="nav-profile-dropdown">
                 <div className="nav-profile-info">
                   <strong>{profile.username || profile.name}</strong>
-                  <span>{profile.title || 'User'}</span>
                 </div>
                 <div className="dropdown-divider"></div>
                 <button className="ghost-block nav-logout" onClick={handleLogout}>Logout</button>
@@ -99,12 +98,6 @@ function Topbar({ stats }) {
       <div>
         <h1>Workspace Overview</h1>
         <p>Teams, projects, and delivery activity at a glance.</p>
-      </div>
-      <div className="topbar-actions">
-        <div className="search-shell">
-          <span>⌕</span>
-          <input type="search" placeholder="Search teams, tasks, or projects" />
-        </div>
       </div>
     </section>
   );

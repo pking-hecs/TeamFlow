@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { projectsApi, tasksApi, teamsApi } from '../services/api.js';
 import { formatShortDate } from '../data/mockWorkspace.js';
+import { getStoredLogo, readFileAsDataUrl, saveStoredLogo } from '../utils/logoStorage.js';
 
 const TASK_STATUSES = ['To Do', 'In Progress', 'Done'];
 
@@ -96,6 +97,9 @@ function ProjectsListPage({ teams }) {
               <p>{project.description || 'This project is currently title-only in the database schema.'}</p>
             </div>
             <div className="project-row-meta">
+              <span className="deadline-icon">
+                {getStoredLogo('project', project.id) ? <img src={getStoredLogo('project', project.id)} alt={`${project.name} logo`} /> : project.name.slice(0, 1)}
+              </span>
               <span>{getTeamName(teams, project.team_id)}</span>
               <span>{formatDeadline(project.deadline)}</span>
               <Link className="secondary-button" to={`/projects/${project.id}`}>Open</Link>
@@ -112,7 +116,9 @@ function ProjectCreationForm({ teams }) {
   const [form, setForm] = useState({
     team_id: String(teams[0]?.id || ''),
     name: '',
+    deadline: '',
   });
+  const [logoFile, setLogoFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const isAdmin = getTeamRole(teams, form.team_id) === 'admin';
@@ -128,7 +134,12 @@ function ProjectCreationForm({ teams }) {
       const res = await projectsApi.create({
         team_id: form.team_id,
         name: form.name.trim(),
+        deadline: form.deadline || undefined,
       });
+      if (logoFile) {
+        const dataUrl = await readFileAsDataUrl(logoFile);
+        saveStoredLogo('project', res.data.id, dataUrl);
+      }
       navigate(`/projects/${res.data.id}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create project');
@@ -161,6 +172,14 @@ function ProjectCreationForm({ teams }) {
             Project name
             <input value={form.name} onChange={(e) => setForm((state) => ({ ...state, name: e.target.value }))} placeholder="Website relaunch" />
           </label>
+          <label>
+            Deadline
+            <input type="date" value={form.deadline} onChange={(e) => setForm((state) => ({ ...state, deadline: e.target.value }))} />
+          </label>
+          <label>
+            Project logo
+            <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
+          </label>
           {!isAdmin ? <p>Only admins can create projects for this team.</p> : null}
           <button type="submit" className="primary-button" disabled={saving || !isAdmin}>
             {saving ? 'Saving...' : 'Save project'}
@@ -179,8 +198,10 @@ function ProjectDetailPage({ teams }) {
   const [tasks, setTasks] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [name, setName] = useState('');
+  const [deadline, setDeadline] = useState('');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskAssigneeId, setNewTaskAssigneeId] = useState('');
+  const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -201,6 +222,7 @@ function ProjectDetailPage({ teams }) {
         if (!active) return;
         setProject(projectRes.data);
         setName(projectRes.data.name || '');
+        setDeadline(projectRes.data.deadline || '');
         setTasks(tasksRes.data);
       } catch (err) {
         if (active) setError(err.response?.data?.message || 'Failed to load project');
@@ -238,8 +260,13 @@ function ProjectDetailPage({ teams }) {
     setSaving(true);
     setError('');
     try {
-      const res = await projectsApi.update(projectId, { name: name.trim() });
+      const res = await projectsApi.update(projectId, { name: name.trim(), deadline: deadline || undefined });
+      if (logoFile) {
+        const dataUrl = await readFileAsDataUrl(logoFile);
+        saveStoredLogo('project', projectId, dataUrl);
+      }
       setProject(res.data);
+      setDeadline(res.data.deadline || '');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update project');
     } finally {
@@ -289,6 +316,7 @@ function ProjectDetailPage({ teams }) {
       <div className="section-heading">
         <div>
           <span className="eyebrow">Project detail</span>
+          {getStoredLogo('project', project.id) ? <img src={getStoredLogo('project', project.id)} alt={`${project.name} logo`} className="entity-logo-preview entity-logo-preview--hero" /> : null}
           <h2>{project.name}</h2>
           <p className="subtle-copy">{getTeamName(teams, project.team_id)}</p>
         </div>
@@ -313,6 +341,14 @@ function ProjectDetailPage({ teams }) {
               <label>
                 Project name
                 <input value={name} onChange={(e) => setName(e.target.value)} />
+              </label>
+              <label>
+                Deadline
+                <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+              </label>
+              <label>
+                Project logo
+                <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} />
               </label>
               <button type="submit" className="primary-button" disabled={saving}>
                 {saving ? 'Saving...' : 'Save changes'}

@@ -1735,3 +1735,271 @@ textarea {
     display: none;
   }
 }
+
+/* ── Minimalist refresh ── */
+:root {
+  --bg: #FAFBFC;
+  --bg-accent: #FFFFFF;
+  --surface: rgba(255, 255, 255, 0.84);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --card: rgba(255, 255, 255, 0.9);
+  --text: #172B4D;
+  --muted: #6B778C;
+  --line: rgba(9, 30, 66, 0.10);
+  --shadow: 0 10px 30px rgba(9, 30, 66, 0.06);
+  --shadow-lg: 0 18px 40px rgba(9, 30, 66, 0.1);
+  --accent: #ff0000;
+  --accent-light: rgba(255, 0, 0, 0.10);
+  --accent-mid: rgba(255, 0, 0, 0.20);
+  --accent-text: #cc0000;
+  --secondary: #e60000;
+  --coral: #ff3333;
+  --button: #172B4D;
+  --button-text: #ffffff;
+}
+
+:root[data-theme='dark'] {
+  --bg: #1D2125;
+  --bg-accent: #1D2125;
+  --surface: rgba(34, 39, 43, 0.8);
+  --surface-strong: rgba(40, 46, 51, 0.88);
+  --card: rgba(40, 46, 51, 0.84);
+  --text: #E3E8EE;
+  --muted: #A9B9C9;
+  --line: rgba(166, 197, 226, 0.16);
+  --shadow: 0 14px 34px rgba(0, 0, 0, 0.34);
+  --shadow-lg: 0 24px 52px rgba(0, 0, 0, 0.42);
+  --accent: #ff0000;
+  --accent-light: rgba(255, 0, 0, 0.15);
+  --accent-mid: rgba(255, 0, 0, 0.25);
+  --accent-text: #ff1a1a;
+  --secondary: #e60000;
+  --coral: #ff3333;
+  --button: #B6C2CF;
+  --button-text: #1D2125;
+}
+
+body {
+  background: linear-gradient(180deg, rgba(250, 251, 252, 0.85), rgba(250, 251, 252, 0.96));
+}
+
+:root[data-theme='dark'] body {
+  background: linear-gradient(180deg, rgba(29, 33, 37, 0.86), rgba(29, 33, 37, 0.98));
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.55), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
+  pointer-events: none;
+  z-index: -1;
+}
+
+.top-navbar {
+  height: 88px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.navbar-logo strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.logo-icon {
+  font-size: 1.2rem;
+}
+
+.topnav-link {
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 0.9rem;
+}
+
+.topnav-link.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ghost-block,
+.primary-button,
+.secondary-button {
+  border-radius: 999px;
+  padding: 0.68rem 1.15rem;
+  box-shadow: none;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #fff;
+}
+
+.secondary-button,
+.ghost-block {
+  background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
+}
+
+.glass-panel,
+.glass-card,
+.hero-card,
+.kanban-column,
+.form-card,
+.team-overview-card,
+.task-row,
+.project-row,
+.deadline-row,
+.comment-card,
+.kanban-card,
+.stat-card {
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow);
+}
+
+.glass-card,
+.hero-card,
+.kanban-column,
+.form-card,
+.stat-card {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+}
+
+.team-overview-card,
+.task-row,
+.project-row,
+.deadline-row,
+.comment-card,
+.kanban-card,
+.member-row {
+  border-radius: 16px;
+}
+
+.stat-card::before,
+.hero-card,
+.danger-zone-card {
+  border-top: none;
+  border-left: none;
+}
+
+.stat-card::before {
+  height: 1px;
+  background: var(--line);
+}
+
+.team-avatar,
+.deadline-icon,
+.user-avatar-trigger {
+  background: var(--accent);
+  color: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.team-avatar img,
+.deadline-icon img,
+.entity-logo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.user-avatar-trigger {
+  border-radius: 999px;
+}
+
+.entity-logo-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
+}
+
+.entity-logo-preview--hero {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 0.85rem;
+}
+
+.search-shell,
+input,
+select,
+textarea {
+  background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
+  border-radius: 14px;
+}
+
+.section-heading h2 {
+  font-size: 1.35rem;
+}
+
+.section-heading h3 {
+  font-size: 1.08rem;
+}
+
+.eyebrow,
+.stat-label {
+  color: var(--muted);
+  letter-spacing: 0.09em;
+}
+
+.text-action {
+  color: var(--accent-text);
+}
+
+.soft-pill,
+.admin-badge,
+.member-badge {
+  background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.ring-pct {
+  color: var(--accent);
+}
+
+.breakdown-fill,
+.ring-dot--done,
+.progress-bar-fill {
+  background: var(--accent);
+}
+
+.breakdown-dot--done,
+.breakdown-dot--in-progress,
+.breakdown-dot--to-do {
+  background: var(--muted);
+}
+
+.breakdown-dot--in-progress {
+  background: var(--secondary);
+}
+
+.breakdown-dot--done {
+  background: var(--accent);
+}
+
+.ring-dot--left {
+  background: transparent;
+  border-color: var(--muted);
+}
+
+.page-stack,
+.dash-top-grid,
+.stats-row,
+.project-list,
+.team-card-grid,
+.team-list-grid,
+.content-grid,
+.kanban-grid {
+  gap: 1rem;
+}

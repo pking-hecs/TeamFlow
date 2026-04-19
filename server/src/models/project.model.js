@@ -1,18 +1,38 @@
 import pool from '../db/connection.js';
 import { randomBytes } from 'crypto';
 
+let projectDeadlineColumnReady;
+
 const generateProjectId = () => {
   const timestamp = Date.now().toString().slice(-8);
   const random = randomBytes(2).toString('hex');
   return `P${timestamp}${random}`;
 };
 
+const ensureProjectDeadlineColumn = async () => {
+  if (!projectDeadlineColumnReady) {
+    projectDeadlineColumnReady = (async () => {
+      const [rows] = await pool.query("SHOW COLUMNS FROM Projects LIKE 'Deadline'");
+      if (!rows.length) {
+        await pool.query('ALTER TABLE Projects ADD COLUMN Deadline DATE NULL');
+      }
+    })().catch((error) => {
+      projectDeadlineColumnReady = null;
+      throw error;
+    });
+  }
+
+  await projectDeadlineColumnReady;
+};
+
 export const createProject = async (teamId, { name, description, deadline }) => {
+  await ensureProjectDeadlineColumn();
+
   const projectId = generateProjectId();
   
   await pool.query(
-    'INSERT INTO Projects (Project_ID, Title, Team_ID, Handled_By) VALUES (?, ?, ?, ?)',
-    [projectId, name, teamId, teamId]
+    'INSERT INTO Projects (Project_ID, Title, Team_ID, Handled_By, Deadline) VALUES (?, ?, ?, ?, ?)',
+    [projectId, name, teamId, teamId, deadline || null]
   );
   
   return {
@@ -26,6 +46,8 @@ export const createProject = async (teamId, { name, description, deadline }) => 
 };
 
 export const getProjects = async (teamId) => {
+  await ensureProjectDeadlineColumn();
+
   const [rows] = await pool.query(
     `SELECT
       Project_ID as id,
@@ -33,7 +55,7 @@ export const getProjects = async (teamId) => {
       Title as name,
       Handled_By as handled_by,
       NULL as description,
-      NULL as deadline
+      Deadline as deadline
      FROM Projects
      WHERE Team_ID = ?`,
     [teamId]
@@ -43,6 +65,8 @@ export const getProjects = async (teamId) => {
 };
 
 export const getProject = async (projectId) => {
+  await ensureProjectDeadlineColumn();
+
   const [rows] = await pool.query(
     `SELECT
       Project_ID as id,
@@ -50,7 +74,7 @@ export const getProject = async (projectId) => {
       Title as name,
       Handled_By as handled_by,
       NULL as description,
-      NULL as deadline
+      Deadline as deadline
      FROM Projects
      WHERE Project_ID = ?`,
     [projectId]
@@ -61,12 +85,18 @@ export const getProject = async (projectId) => {
 };
 
 export const updateProject = async (projectId, { name, description, deadline }) => {
+  await ensureProjectDeadlineColumn();
+
   const updates = [];
   const values = [];
   
   if (name !== undefined) {
     updates.push('Title = ?');
     values.push(name);
+  }
+  if (deadline !== undefined) {
+    updates.push('Deadline = ?');
+    values.push(deadline || null);
   }
   
   if (updates.length === 0) return null;

@@ -58,6 +58,7 @@ CREATE TABLE `Projects` (
   `Title` varchar(100) DEFAULT NULL,
   `Team_ID` varchar(20) DEFAULT NULL,
   `Handled_By` varchar(20) DEFAULT NULL,
+  `Deadline` date DEFAULT NULL,
   PRIMARY KEY (`Project_ID`),
   KEY `Team_ID` (`Team_ID`),
   KEY `Handled_By` (`Handled_By`),
@@ -72,7 +73,7 @@ CREATE TABLE `Projects` (
 
 LOCK TABLES `Projects` WRITE;
 /*!40000 ALTER TABLE `Projects` DISABLE KEYS */;
-INSERT INTO `Projects` VALUES ('P1','DB Project','T1','T1');
+INSERT INTO `Projects` VALUES ('P1','DB Project','T1','T1',NULL);
 /*!40000 ALTER TABLE `Projects` ENABLE KEYS */;
 UNLOCK TABLES;
 

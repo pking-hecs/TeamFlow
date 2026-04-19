@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { formatShortDate } from '../data/mockWorkspace.js';
+import { getStoredLogo } from '../utils/logoStorage.js';
 
 /* ── Stat card ─────────────────────────────────── */
 function StatCard({ label, value, icon, accent }) {
@@ -100,7 +101,9 @@ export default function Dashboard({ teams, workspace, stats }) {
             <div className="team-card-grid">
               {teams.map((team) => (
                 <Link key={team.id} to={`/teams/${team.id}`} className="team-overview-card">
-                  <div className="team-avatar">{team.name.slice(0, 2).toUpperCase()}</div>
+                  <div className="team-avatar">
+                    {getStoredLogo('team', team.id) ? <img src={getStoredLogo('team', team.id)} alt={`${team.name} logo`} /> : team.name.slice(0, 2).toUpperCase()}
+                  </div>
                   <div>
                     <strong>{team.name}</strong>
                     <span>{team.member_count || 0} members</span>
@@ -172,7 +175,9 @@ export default function Dashboard({ teams, workspace, stats }) {
         <div className="project-deadline-list project-deadline-list--wide">
           {topProjects.map((project) => (
             <Link key={project.id} to={`/projects/${project.id}`} className="deadline-row">
-              <div className="deadline-icon">{project.name.slice(0, 1)}</div>
+              <div className="deadline-icon">
+                {getStoredLogo('project', project.id) ? <img src={getStoredLogo('project', project.id)} alt={`${project.name} logo`} /> : project.name.slice(0, 1)}
+              </div>
               <div className="deadline-copy">
                 <strong>{project.name}</strong>
                 <span>{project.deadline ? `Due ${formatShortDate(project.deadline)}` : 'No deadline'}</span>
