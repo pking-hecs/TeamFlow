@@ -3,8 +3,6 @@ import { insertUser, findUser } from "../models/user.model.js";
 import jwt from "jsonwebtoken"
 import { validationResult } from "express-validator";
 
-const SECRET_KEY = process.env.JWT_SECRET;
-
 const signup = async (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()){
@@ -34,7 +32,7 @@ const login = async (req, res) => {
     if(!match){
         return res.status(401).json({message: "Invalid password"});
     }
-    const token = jwt.sign({id: user.id, username: user.username, email: user.email}, SECRET_KEY, {
+    const token = jwt.sign({id: user.id, username: user.username, email: user.email}, process.env.JWT_SECRET, {
         expiresIn: '7h'
     });
     res.json({token});

@@ -5,10 +5,19 @@ export const login = createAsyncThunk(
   "auth/login",
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await authAPI.login(credentials);
-      localStorage.setItem("token", response.data.token);
-      return response.data;
+      const loginResponse = await authAPI.login(credentials);
+      const token = loginResponse.data.token;
+
+      localStorage.setItem("token", token);
+
+      const meResponse = await authAPI.me();
+
+      return {
+        token,
+        user: meResponse.data.user,
+      };
     } catch (error) {
+      localStorage.removeItem("token");
       return rejectWithValue(error.response?.data?.message || "Invalid email or password");
     }
   }
@@ -68,17 +77,26 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.token = action.payload.token;
+        state.user = action.payload.user;
         state.isAuthenticated = true;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+      })
+      .addCase(fetchMe.pending, (state) => {
+        state.loading = true;
       })
       .addCase(fetchMe.fulfilled, (state, action) => {
+        state.loading = false;
         state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(fetchMe.rejected, (state) => {
+        state.loading = false;
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;

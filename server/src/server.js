@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+import './config/env.js';
 
 // Your routes
 import teamsRouter from './routes/teams.routes.js';
@@ -9,8 +9,6 @@ import authRouter from './routes/auth.routes.js';
 // Teammate routes (ONLY if they don't depend on mongoose)
 import projectRoutes from './routes/projects.routes.js';
 import taskRoutes from './routes/tasks.routes.js';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
