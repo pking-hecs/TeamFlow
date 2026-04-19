@@ -1,22 +1,20 @@
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-export const authenticate = (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      // Mock user for testing if no token provided (since other modules aren't done)
-      // This allows the Teams module to function without the full auth module being implemented.
-      req.user = { id: 1, email: 'test@example.com', name: 'Test User' };
-      return next();
+const SECRET_KEY = "my-server-key";
+
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(' ')[1];
+    if(!token){
+        return res.status(401).json({message: "Token missing"});
     }
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if(err){
+            return res.status(403).json({message: "Invalid or expired Token"});
+        }
+        req.user = decoded;
+        next();
+    })
+}
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-    req.user = decoded;
-    next();
-  } catch (error) {
-    // If token is invalid, also just mock user for now to unblock testing
-    req.user = { id: 1, email: 'test@example.com', name: 'Test User' };
-    next();
-  }
-};
+export default authenticateToken;
