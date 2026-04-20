@@ -6,6 +6,7 @@ A lightweight, high-performance web application designed for efficient team coll
 The Task Management System was developed to bridge the strategic gap between overly simplistic tools like Trello and complex, high-overhead enterprise solutions like Jira.
 
 While enterprise tools offer comprehensive features, they often impose steep learning curves and significant system resource consumption. This project focuses on core functionalities—authentication, team hierarchies, and visual task tracking—to ensure productivity without unnecessary cognitive overhead.
+
 2. Key Features
 
     Secure Authentication: Implements JWT-based token authentication with password security via bcrypt hashing.
