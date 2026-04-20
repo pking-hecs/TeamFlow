@@ -1,4 +1,4 @@
-Collaborative Project and Task Management System
+# Collaborative Project and Task Management System
 
 A lightweight, high-performance web application designed for efficient team collaboration and streamlined project management. This system serves as a functional alternative to resource-heavy enterprise tools, providing an optimal balance between simplicity and core utility for small to medium-sized teams.
 1. Project Concept & Rationale
