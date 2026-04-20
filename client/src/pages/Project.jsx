@@ -2,10 +2,17 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { projectsApi, tasksApi, teamsApi } from '../services/api.js';
-import { formatShortDate } from '../data/mockWorkspace.js';
 import { getStoredLogo, readFileAsDataUrl, saveStoredLogo } from '../utils/logoStorage.js';
 
 const TASK_STATUSES = ['To Do', 'In Progress', 'Done'];
+
+function formatShortDate(input) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(input));
+}
 
 function formatDeadline(input) {
   if (!input) return 'No deadline';
@@ -32,6 +39,18 @@ function ProjectsListPage({ teams }) {
   const [error, setError] = useState('');
 
   const isAdmin = getTeamRole(teams, selectedTeam) === 'admin';
+
+  useEffect(() => {
+    if (!teams.length) {
+      setSelectedTeam('');
+      return;
+    }
+
+    const hasSelectedTeam = teams.some((team) => String(team.id) === String(selectedTeam));
+    if (!hasSelectedTeam) {
+      setSelectedTeam(String(teams[0].id));
+    }
+  }, [teams, selectedTeam]);
 
   useEffect(() => {
     if (!selectedTeam) {
@@ -122,6 +141,18 @@ function ProjectCreationForm({ teams }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const isAdmin = getTeamRole(teams, form.team_id) === 'admin';
+
+  useEffect(() => {
+    if (!teams.length) {
+      setForm((state) => ({ ...state, team_id: '' }));
+      return;
+    }
+
+    const hasSelectedTeam = teams.some((team) => String(team.id) === String(form.team_id));
+    if (!hasSelectedTeam) {
+      setForm((state) => ({ ...state, team_id: String(teams[0].id) }));
+    }
+  }, [teams, form.team_id]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -422,6 +453,18 @@ function TasksListPage({ teams }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const isAdmin = getTeamRole(teams, selectedTeam) === 'admin';
+
+  useEffect(() => {
+    if (!teams.length) {
+      setSelectedTeam('');
+      return;
+    }
+
+    const hasSelectedTeam = teams.some((team) => String(team.id) === String(selectedTeam));
+    if (!hasSelectedTeam) {
+      setSelectedTeam(String(teams[0].id));
+    }
+  }, [teams, selectedTeam]);
 
   useEffect(() => {
     if (!selectedTeam) return;
@@ -774,6 +817,18 @@ function KanbanPage({ teams }) {
   const dragStateRef = useRef({ taskId: null, dropped: false });
   const isAdmin = getTeamRole(teams, selectedTeam) === 'admin';
   const canMoveTask = (task) => isAdmin || String(task.assignee_id) === String(authUser?.id);
+
+  useEffect(() => {
+    if (!teams.length) {
+      setSelectedTeam('');
+      return;
+    }
+
+    const hasSelectedTeam = teams.some((team) => String(team.id) === String(selectedTeam));
+    if (!hasSelectedTeam) {
+      setSelectedTeam(String(teams[0].id));
+    }
+  }, [teams, selectedTeam]);
 
   useEffect(() => {
     if (!selectedTeam) return;

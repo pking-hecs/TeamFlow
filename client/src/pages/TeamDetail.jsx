@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addTeamMember, clearCurrentTeam, fetchTeam, fetchTeams, removeTeamMember, updateTeamMember, updateTeam, selectCurrentTeam, selectTeams } from '../store/teamsSlice.js';
-import { getTeamMembers, getTeamProjects } from '../data/mockWorkspace.js';
 import { getStoredLogo, readFileAsDataUrl, saveStoredLogo } from '../utils/logoStorage.js';
 
 function TeamMembersPanel({ team }) {
@@ -22,12 +21,11 @@ function TeamMembersPanel({ team }) {
     [allTeams, team]
   );
 
-  // Use the embedded members array if available; otherwise fall back to mock generator.
+  // Use the embedded members array from the API when available.
   const members = useMemo(() => {
     if (richTeam?.members?.length) return richTeam.members;
     if (currentTeam?.id === team?.id && currentTeam?.members?.length) return currentTeam.members;
-    if (richTeam?.id || currentTeam?.id === team?.id) return [];
-    return getTeamMembers(richTeam);
+    return [];
   }, [richTeam, currentTeam, team]);
 
   // Viewer is admin when the team object says so.
@@ -270,7 +268,7 @@ export default function TeamDetail({ teams, workspace, mode = 'detail' }) {
   const currentTeam = useSelector(selectCurrentTeam);
   const teamFromList = teams.find((item) => String(item.id) === String(id));
   const team = String(currentTeam?.id) === String(id) ? currentTeam : teamFromList;
-  const projects = getTeamProjects(workspace, team?.id);
+  const projects = workspace.projects.filter((project) => String(project.teamId) === String(team?.id));
   const teamLogo = team ? getStoredLogo('team', team.id) : '';
 
   useEffect(() => {

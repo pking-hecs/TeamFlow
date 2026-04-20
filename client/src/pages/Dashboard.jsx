@@ -1,7 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { formatShortDate } from '../data/mockWorkspace.js';
 import { getStoredLogo } from '../utils/logoStorage.js';
+
+function formatShortDate(input) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(input));
+}
 
 /* ── Stat card ─────────────────────────────────── */
 function StatCard({ label, value, icon, accent }) {

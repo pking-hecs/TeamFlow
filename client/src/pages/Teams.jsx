@@ -60,7 +60,7 @@ export default function TeamsPage({ teams, workspace }) {
 
       <div className="team-list-grid">
         {teams.map((team) => {
-          const projectCount = workspace.projects.filter((project) => project.teamId === team.id).length;
+          const projectCount = workspace.projects.filter((project) => String(project.teamId) === String(team.id)).length;
           const logo = getStoredLogo('team', team.id);
           return (
             <article key={team.id} className="glass-card team-list-card">
