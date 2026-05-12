@@ -263,13 +263,12 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## ☁️ Deployment
 
-The application is deployed on **Vercel** with **Aiven MySQL** as the cloud database.
+The application is live and deployed on **Vercel** with **Aiven MySQL** as the cloud database.
 
-| Service | Platform |
+| Service | Link |
 |:---|:---|
-| Frontend | [Vercel](https://vercel.com/) |
-| Backend API | [Vercel Serverless Functions](https://vercel.com/) |
-| Database | [Aiven MySQL](https://aiven.io/) |
+| 🌐 **Frontend** | [dbs-mini-project-zr8l.vercel.app](https://dbs-mini-project-zr8l.vercel.app) |
+| ⚙️ **Backend API Health** | [dbs-mini-project-xi.vercel.app/api/health](https://dbs-mini-project-xi.vercel.app/api/health) |
 
 ### Environment Variables (Vercel)
 
@@ -288,6 +287,7 @@ The application is deployed on **Vercel** with **Aiven MySQL** as the cloud data
 | Variable | Description |
 |:---|:---|
 | `VITE_API_URL` | Backend deployment URL |
+
 
 ---
 
