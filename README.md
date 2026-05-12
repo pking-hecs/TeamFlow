@@ -30,7 +30,7 @@
 
 ## 💡 About
 
-TaskFlow bridges the gap between overly simplistic tools like Trello and complex enterprise solutions like Jira. It focuses on core functionalities — **authentication**, **team hierarchies**, and **visual task tracking** — to ensure productivity without unnecessary overhead.
+TeamFlow bridges the gap between overly simplistic tools like Trello and complex enterprise solutions like Jira. It focuses on core functionalities — **authentication**, **team hierarchies**, and **visual task tracking** — to ensure productivity without unnecessary overhead.
 
 Built as a **Database Systems Mini Project**, this application demonstrates practical implementation of relational database concepts including normalization (3NF), referential integrity through foreign key constraints, and cascading operations.
 
