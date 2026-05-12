@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚀 TaskFlow — Collaborative Project & Task Management
+# 🚀 TeamFlow — Collaborative Project & Task Management
 
 **A lightweight, high-performance web application for efficient team collaboration and streamlined project management.**
 
