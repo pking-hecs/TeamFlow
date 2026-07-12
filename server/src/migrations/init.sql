@@ -186,7 +186,7 @@ CREATE TABLE `Users` (
 
 LOCK TABLES `Users` WRITE;
 /*!40000 ALTER TABLE `Users` DISABLE KEYS */;
-INSERT INTO `Users` VALUES ('U1','Joe Mama','joe@example.com', '123456@A');
+INSERT INTO `Users` VALUES ('U1','Joe Mama','joe@example.com', '$2b$10$kDImIIORtmG2AXUSjrIodus6betzXv5gUI/JGQThbuTWkFp5k/Y8.');
 /*!40000 ALTER TABLE `Users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
